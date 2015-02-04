@@ -1,0 +1,80 @@
+* {
+	margin: 0;
+	padding: 0;
+	border: 0;
+
+	cursor: default;
+}
+
+html, body, svg {
+	width: 100%;
+	height: 100%;
+
+	overflow: hidden;
+}
+
+body {
+	font-family: sans-serif;
+	font-weight: 300;
+	text-align: center;
+}
+
+svg {
+	width: 100vh;
+	height: 100vh;
+	vertical-align: middle;
+}
+
+/* g */.clickable rect {
+	fill: #99CC33;
+}
+
+/* g */.clickable:hover rect {
+	fill: #FF6000;
+}
+
+/* g */.locked rect {
+	fill: #669922;
+}
+
+text {
+	text-anchor: middle;
+}
+
+/* text */.label {
+	fill: #FFF;
+	font-size: 4vh;
+}
+
+/* text */.timer {
+	fill: #000;
+	font-size: 10vh;
+}
+
+/* text */.info {
+	fill: #000;
+	font-size: 5vh;
+}
+
+/* RESIZE & SCREEN MODES FIXES */
+
+@media screen and (orientation: portrait) {
+
+svg {
+	width: 100vw;
+	height: 100vw;
+}
+
+/* text */.label {
+	font-size: 4vw;
+}
+
+/* text */.timer {
+	font-size: 10vw;
+}
+
+/* text */.info {
+	font-size: 5vw;
+}
+
+}
