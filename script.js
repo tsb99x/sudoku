@@ -12,20 +12,33 @@ var App = (function() {
 
 	var randomInt = function(minNumber, maxNumber) {
 		return Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
-	}
+	};
+
+	var timestampToTimeString = function(timestamp) {
+		var passedSeconds = timestamp / 1000;
+		var minutes = Math.floor(passedSeconds / 60);
+		var seconds = Math.round(passedSeconds - minutes * 60);
+
+		if (minutes.toString().length < 2)
+			minutes = '0' + minutes;
+
+		if (seconds.toString().length < 2)
+			seconds = '0' + seconds;
+
+		return minutes + ':' + seconds;
+	};
 
 	/* INTERFACE */
 
 	return {
 	
 	init: function() {
-		var svg = document.createElementNS(SVG_NS, 'svg')
+		var svg = document.body.addTag('svg', SVG_NS)
 			.setAttributes({
 				'version': '1.1',
-				'preserveAspectRatio': 'XMidYMid meet',
+				'preserveAspectRatio': 'xMidYMid meet',
 				'text-rendering': 'geometricPrecision'
-			})
-			.appendTo(document.body);
+			});
 
 		App.startScreen(svg);
 	},
@@ -34,7 +47,11 @@ var App = (function() {
 		var buttonWidth = 25,
 			buttonHeight = 5;
 
-		var label = document.createElementNS(SVG_NS, 'text')
+		var toGameScreen = function() {
+			App.gameScreen(svg);
+		};
+
+		svg.addTag('text', SVG_NS)
 			.setAttributes({
 				'x': 50,
 				'y': 40
@@ -46,16 +63,15 @@ var App = (function() {
 			})
 			.setParameters({
 				textContent: 'Добро пожаловать в Судоку!'
-			})
-			.appendTo(svg);
+			});
 
-		var g = document.createElementNS(SVG_NS, 'g')
+		var g = svg.addTag('g', SVG_NS)
+			.addListener('click', toGameScreen, false)
 			.setAttributes({
 				class: 'clickable'
-			})
-			.appendTo(svg);
+			});
 
-		var rect = document.createElementNS(SVG_NS, 'rect')
+		var rect = g.addTag('rect', SVG_NS)
 			.setAttributes({
 				'x': 50 - buttonWidth / 2,
 				'y': 50 - buttonHeight / 2,
@@ -63,10 +79,9 @@ var App = (function() {
 				'height': buttonHeight
 			}, {
 				units: '%'
-			})
-			.appendTo(g);
+			});
 
-		var buttonLabel = document.createElementNS(SVG_NS, 'text')
+		var buttonLabel = g.addTag('text', SVG_NS)
 			.setAttributes({
 				'x': 50,
 				'y': 50 + 1 // FONT_SIZE of button
@@ -78,10 +93,7 @@ var App = (function() {
 			})
 			.setParameters({
 				textContent: 'начать игру'
-			})
-			.appendTo(g);
-
-		g.onclick = function() { App.gameScreen(svg); };
+			});
 	},
 
 	gameScreen: function(svg) {
@@ -124,7 +136,7 @@ var App = (function() {
 
 			if (playGrid.every(isRowSolved)) {
 				clearInterval(handler);
-				App.winScreen(svg, Math.floor((Date.now() - startTime) / 1000));
+				App.winScreen(svg, Date.now() - startTime);
 			}
 		};
 
@@ -187,13 +199,12 @@ var App = (function() {
 				var cellStartX = ORIGIN_POINT.x + CELL_SIZE * cellIndex + SPACE_SIZE * cellIndex + offsetX * INTERSPACE_SIZE,
 					cellStartY = ORIGIN_POINT.y + CELL_SIZE * rowIndex + SPACE_SIZE * rowIndex + offsetY * INTERSPACE_SIZE;
 
-				var g = document.createElementNS(SVG_NS, 'g')
+				var g = svg.addTag('g', SVG_NS)
 					.setAttributes({
 						'class': cell.locked ? 'locked' : 'clickable'
-					})
-					.appendTo(svg);
+					});
 
-				var rect = document.createElementNS(SVG_NS, 'rect')
+				var rect = g.addTag('rect', SVG_NS)
 					.setAttributes({
 						'x': cellStartX,
 						'y': cellStartY,
@@ -201,10 +212,9 @@ var App = (function() {
 						'height': CELL_SIZE
 					}, {
 						units: '%'
-					})
-					.appendTo(g);
+					});
 
-				var label = document.createElementNS(SVG_NS, 'text')
+				var label = g.addTag('text', SVG_NS)
 					.setAttributes({
 						'x': cellStartX + CELL_SIZE / 2,
 						'y': cellStartY + CELL_SIZE / 2 + FONT_SIZE / 2,
@@ -216,8 +226,7 @@ var App = (function() {
 					})
 					.setParameters({
 						textContent: cell.value,
-					})
-					.appendTo(g);
+					});
 
 				var addValue = function() {
 					if (cell.value == 9)
@@ -229,9 +238,9 @@ var App = (function() {
 					if (cell.value == '')
 						cell.value = 1
 
-					label.textContent = cell.value;
-
 					checkSolution();
+
+					label.textContent = cell.value;
 				};
 
 				var subValue = function() {
@@ -244,14 +253,14 @@ var App = (function() {
 					if (cell.value == '')
 						cell.value = 9;
 
-					label.textContent = cell.value;
-
 					checkSolution();
+
+					label.textContent = cell.value;
 				};
 
 				if (!cell.locked) {
-					g.onclick = addValue;
-					g.oncontextmenu = subValue;
+					g.addListener('click', addValue, false);
+					g.addListener('contextmenu', subValue, false);
 				}
 			};
 
@@ -262,7 +271,7 @@ var App = (function() {
 
 		var startTime = Date.now();
 
-		var time = document.createElementNS(SVG_NS, 'text')
+		var time = svg.addTag('text', SVG_NS)
 			.setAttributes({
 				'x': 50,
 				'y': 7 + 2.5 // FONT_SIZE of .timer
@@ -271,46 +280,29 @@ var App = (function() {
 			})
 			.setAttributes({
 				'class': 'timer'
-			})
-			.appendTo(svg);
+			});
 
 		var updateTime = function() {
-			var passedSeconds = Math.floor((Date.now() - startTime) / 1000);
-
-			var minutes = Math.floor(passedSeconds / 60);
-			var seconds = passedSeconds - minutes * 60;
-
-			if (minutes.toString().length < 2)
-				minutes = '0' + minutes;
-
-			if (seconds.toString().length < 2)
-				seconds = '0' + seconds;
-
-			time.textContent = minutes + ':' + seconds;
+			time.textContent = timestampToTimeString(Date.now() - startTime);
 		};
 		updateTime();
 
 		handler = setInterval(updateTime, 1000);
 	},
 
-	winScreen: function(svg, passedSeconds) {
+	winScreen: function(svg, timestamp) {
+		var toGameScreen = function() {
+			App.gameScreen(svg);
+		};
+
 		svg.clear();
 
-		var minutes = Math.floor(passedSeconds / 60);
-		var seconds = passedSeconds - minutes * 60;
-
-		if (minutes.toString().length < 2)
-			minutes = '0' + minutes;
-
-		if (seconds.toString().length < 2)
-			seconds = '0' + seconds;
-
-		var time = minutes + ':' + seconds;
+		var time = timestampToTimeString(timestamp);
 
 		var buttonWidth = 30,
 			buttonHeight = 5;
 
-		var label = document.createElementNS(SVG_NS, 'text')
+		var label = svg.addTag('text', SVG_NS)
 			.setAttributes({
 				'x': 50,
 				'y': 40 + 1 // FONT_SIZE of button
@@ -322,16 +314,15 @@ var App = (function() {
 			})
 			.setParameters({
 				textContent: 'Поздравляем! Вы решили судоку за ' + time
-			})
-			.appendTo(svg);
+			});
 
-		var g = document.createElementNS(SVG_NS, 'g')
+		var g = svg.addTag('g', SVG_NS)
+			.addListener('click', toGameScreen, false)
 			.setAttributes({
 				class: 'clickable'
-			})
-			.appendTo(svg);
+			});
 
-		var rect = document.createElementNS(SVG_NS, 'rect')
+		var rect = g.addTag('rect', SVG_NS)
 			.setAttributes({
 				'x': 50 - buttonWidth / 2,
 				'y': 50 - buttonHeight / 2,
@@ -339,13 +330,12 @@ var App = (function() {
 				'height': buttonHeight
 			}, {
 				units: '%'
-			})
-			.appendTo(g);
+			});
 
-		var buttonLabel = document.createElementNS(SVG_NS, 'text')
+		var buttonLabel = g.addTag('text', SVG_NS)
 			.setAttributes({
 				'x': 50,
-				'y': 50
+				'y': 50  + 1 // FONT_SIZE of label
 			}, {
 				units: '%'
 			})
@@ -354,21 +344,12 @@ var App = (function() {
 			})
 			.setParameters({
 				textContent: 'начать сначала'
-			})
-			.appendTo(g);
-
-		g.onclick = function() { App.gameScreen(svg); };
+			});
 	}
 
 	};
 
 })();
-
-var preventDefault = function(event) {
-	event.preventDefault();
-
-	return false;
-};
 
 Element.prototype.setAttributes = function(attributesObject, modifiersObject) {
 	var namespace = null,
@@ -404,20 +385,9 @@ Element.prototype.setParameters = function(parametersObject) {
 	return this;
 };
 
-Element.prototype.appendTo = function(element) {
-	return element.appendChild(this);
-};
-
-Element.prototype.clear = function() {
-	while (this.firstChild)
-		this.removeChild(this.firstChild);
-
-	return this;
-};
-
-document.ontouchmove = preventDefault; // no scroll, bounce and zoom for iOS
-document.oncontextmenu = preventDefault; // no context menu on RMB
-document.onselectstart = preventDefault; // no text selection (for labels)
-document.onmousedown = preventDefault; // no events with mouse down (working as text selection in firefox)
+document.ontouchmove = Utility.Misc.preventDefault; // no scroll, bounce and zoom for iOS
+document.oncontextmenu = Utility.Misc.preventDefault; // no context menu on RMB
+document.onselectstart = Utility.Misc.preventDefault; // no text selection (for labels)
+document.onmousedown = Utility.Misc.preventDefault; // no events with mouse down (working as text selection in firefox)
 
 window.onload = App.init;
