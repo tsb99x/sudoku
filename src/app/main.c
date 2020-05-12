@@ -109,12 +109,15 @@ static void set_draw_color(
         SDL_SetRenderDrawColor(r, c->r, c->g, c->b, c->a);
 }
 
+#define DEFAULT_FRAME_RATE 30
+
 int WinMain(
         HINSTANCE hInstance,
         HINSTANCE hPrevInstance,
         LPSTR lpCmdLine,
         int nShowCmd
 ) {
+        SDL_DisplayMode mode;
         SDL_Window *window;
         SDL_Renderer *renderer;
         SDL_Rect rect, dstrect;
@@ -125,6 +128,10 @@ int WinMain(
         TTF_Font *font;
         int i, x, y, mouse_x, mouse_y, mouse_bt, w, h;
         int res = 0, quit = 0;
+        unsigned int last_render_time;
+        unsigned int target_render_time;
+        int refresh_rate;
+        int millis_on_frame;
 
         if (SDL_Init(SDL_INIT_VIDEO)) {
                 SDL_Log("Failed to init SDL: %s\n", SDL_GetError());
@@ -137,6 +144,21 @@ int WinMain(
                 goto cleanup_sdl;
         }
 
+        if (SDL_GetNumVideoDisplays() < 1) {
+                SDL_Log("Failed to get number of displays: %s\n", SDL_GetError());
+                res = -2;
+                goto cleanup_sdl;
+        }
+
+        if (SDL_GetDisplayMode(0, 0, &mode) != 0) {
+                SDL_Log("Failed to get best display mode: %s\n", SDL_GetError());
+                res = -2;
+                goto cleanup_sdl;
+        }
+        refresh_rate = (mode.refresh_rate == 0 ? DEFAULT_FRAME_RATE : mode.refresh_rate);
+        millis_on_frame = 1000 / refresh_rate;
+        SDL_Log("Initialized with frame rate of %d, millis on frame: %d\n", refresh_rate, millis_on_frame);
+
         window = SDL_CreateWindow(
                 "Sudoku", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                 1024, 768, SDL_WINDOW_SHOWN
@@ -147,7 +169,7 @@ int WinMain(
                 goto cleanup_ttf;
         }
 
-        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
         if (!renderer) {
                 SDL_Log("Failed to create renderer: %s\n", SDL_GetError());
                 res = -4;
@@ -164,6 +186,7 @@ int WinMain(
         buffer_digits(renderer, font, digit_color, digits_cache);
         init_buttons(buttons);
 
+        last_render_time = SDL_GetTicks();
         while (!quit) {
                 while (SDL_PollEvent(&event)) {
                         if (event.type == SDL_QUIT)
@@ -215,6 +238,11 @@ int WinMain(
 
                 SDL_DestroyTexture(texture);
                 SDL_FreeSurface(text);
+
+                target_render_time = last_render_time + millis_on_frame;
+                if (SDL_GetTicks() < target_render_time)
+                        SDL_Delay(target_render_time - SDL_GetTicks());
+                last_render_time = SDL_GetTicks();
 
                 SDL_RenderPresent(renderer);
         }
