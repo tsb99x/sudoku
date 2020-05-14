@@ -223,7 +223,10 @@ int WinMain(
                                 if (buttons[y + x].val > 0) {
                                         SDL_Texture *tex = digits_cache[buttons[y + x].val - 1];
                                         SDL_QueryTexture(tex, NULL, NULL, &w, &h);
-                                        dstrect = (SDL_Rect) { rect.x, rect.y, w, h };
+                                        dstrect.x = rect.x;
+                                        dstrect.y = rect.y;
+                                        dstrect.w = w;
+                                        dstrect.h = h;
                                         SDL_RenderCopy(renderer, tex, NULL, &dstrect);
                                 }
                         }
@@ -232,7 +235,10 @@ int WinMain(
                 texture = SDL_CreateTextureFromSurface(renderer, text);
 
                 SDL_QueryTexture(texture, NULL, NULL, &w, &h);
-                dstrect = (SDL_Rect) { 0, 0, w, h };
+                dstrect.x = 0;
+                dstrect.y = 0;
+                dstrect.w = w;
+                dstrect.h = h;
 
                 SDL_RenderCopy(renderer, texture, NULL, &dstrect);
 
