@@ -169,7 +169,7 @@ int WinMain(
                 goto cleanup_ttf;
         }
 
-        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
         if (!renderer) {
                 SDL_Log("Failed to create renderer: %s\n", SDL_GetError());
                 res = -4;
