@@ -8,10 +8,10 @@ set(SDL_VER 2.0.12)
 set(TTF_VER 2.0.15)
 
 foreach(ZIP SDL2-devel-${SDL_VER}-VC SDL2_ttf-devel-${TTF_VER}-VC)
+        message("Unpacking ${ZIP}")
         execute_process(COMMAND ${CMAKE_COMMAND}
                 -E tar xzf ${CMAKE_CURRENT_LIST_DIR}/${ZIP}.zip
-                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-                COMMAND_ECHO STDOUT)
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endforeach()
 
 set(SDL_DIR ${CMAKE_CURRENT_BINARY_DIR}/SDL2-${SDL_VER})
