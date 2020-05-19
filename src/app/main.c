@@ -89,17 +89,6 @@ static void init_buttons(
                 }
 }
 
-static int is_point_in_rect(
-        int x,
-        int y,
-        SDL_Rect *r
-) {
-        return x >= r->x
-                && x <= r->x + r->w
-                && y >= r->y
-                && y <= r->y + r->h;
-}
-
 /* Utility Wrappers to Simplify SDL for Myself */
 
 static void set_draw_color(
@@ -121,12 +110,12 @@ int WinMain(
         SDL_Window *window;
         SDL_Renderer *renderer;
         SDL_Rect rect, dstrect;
-        SDL_Color *color;
         SDL_Event event;
         SDL_Surface *text;
         SDL_Texture *texture;
         TTF_Font *font;
-        int i, x, y, mouse_x, mouse_y, mouse_bt, w, h;
+        SDL_Point mouse_pos;
+        int x, y, mouse_bt, w, h;
         int res = 0, quit = 0;
         unsigned int last_render_time;
         unsigned int target_render_time;
@@ -199,7 +188,7 @@ int WinMain(
                 set_draw_color(renderer, background_color);
                 SDL_RenderClear(renderer);
 
-                mouse_bt = SDL_GetMouseState(&mouse_x, &mouse_y);
+                mouse_bt = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
 
                 rect.w = rect.h = TILE_SIZE;
                 for (y = 0; y < ROWS; ++y)
@@ -216,7 +205,7 @@ int WinMain(
                                         rect.y += TILE_GAP * 2;
 
                                 set_draw_color(renderer, clickable_color);
-                                if (is_point_in_rect(mouse_x, mouse_y, &rect))
+                                if (SDL_PointInRect(&mouse_pos, &rect))
                                         set_draw_color(renderer, hovered_color);
                                 SDL_RenderFillRect(renderer, &rect);
 
