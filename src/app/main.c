@@ -205,6 +205,35 @@ static void clear_screen(
         SDL_RenderClear(ctx->renderer);
 }
 
+static void draw_timer(
+        struct ctx *ctx
+) {
+        SDL_Surface *text;
+        SDL_Texture *texture;
+        SDL_Rect dstrect;
+        unsigned int seconds_from_start;
+        unsigned int timer_seconds;
+        unsigned int timer_minutes;
+        char timer_str[8];
+
+        seconds_from_start = SDL_GetTicks() / 1000;
+        timer_minutes = seconds_from_start / 60;
+        timer_seconds = seconds_from_start % 60;
+        sprintf(timer_str, "%02u:%02u", timer_minutes, timer_seconds);
+
+        text = TTF_RenderUTF8_Blended(ctx->font, timer_str, *timer_color);
+        texture = SDL_CreateTextureFromSurface(ctx->renderer, text);
+
+        dstrect.x = 0;
+        dstrect.y = 0;
+        SDL_QueryTexture(texture, NULL, NULL, &dstrect.w, &dstrect.h);
+
+        SDL_RenderCopy(ctx->renderer, texture, NULL, &dstrect);
+
+        SDL_DestroyTexture(texture);
+        SDL_FreeSurface(text);
+}
+
 static void present_screen(
         struct ctx *ctx
 ) {
@@ -228,12 +257,10 @@ int WinMain(
         struct button *buttons;
         SDL_Rect rect, dstrect;
         SDL_Event event;
-        SDL_Surface *text;
         SDL_Texture *tex;
-        SDL_Texture *texture;
         SDL_Point mouse_pos;
-        int x, y, mouse_bt, w, h;
-        int res = 0, quit = 0;
+        int x, y, mouse_bt;
+        int quit;
 
         ctx = create_context();
         if (!ctx) {
@@ -256,6 +283,7 @@ int WinMain(
                 return -1;
         }
 
+        quit = 0;
         while (!quit) {
                 while (SDL_PollEvent(&event)) {
                         if (event.type == SDL_QUIT)
@@ -289,29 +317,14 @@ int WinMain(
 
                                 if (buttons[y + x].val > 0) {
                                         tex = digits[buttons[y + x].val - 1];
-                                        SDL_QueryTexture(tex, NULL, NULL, &w, &h);
                                         dstrect.x = rect.x;
                                         dstrect.y = rect.y;
-                                        dstrect.w = w;
-                                        dstrect.h = h;
+                                        SDL_QueryTexture(tex, NULL, NULL, &dstrect.w, &dstrect.h);
                                         SDL_RenderCopy(ctx->renderer, tex, NULL, &dstrect);
                                 }
                         }
 
-                text = TTF_RenderUTF8_Blended(ctx->font, "00:00", *timer_color);
-                texture = SDL_CreateTextureFromSurface(ctx->renderer, text);
-
-                SDL_QueryTexture(texture, NULL, NULL, &w, &h);
-                dstrect.x = 0;
-                dstrect.y = 0;
-                dstrect.w = w;
-                dstrect.h = h;
-
-                SDL_RenderCopy(ctx->renderer, texture, NULL, &dstrect);
-
-                SDL_DestroyTexture(texture);
-                SDL_FreeSurface(text);
-
+                draw_timer(ctx);
                 present_screen(ctx);
         }
 
