@@ -4,41 +4,6 @@
 
 #include <stdio.h>
 
-#define TILE_SIZE 50
-#define TILE_GAP 3
-
-/* Simplify Digit Drawing by Caching */
-
-SDL_Texture *digits_cache[9];
-
-static void buffer_digits(
-        SDL_Renderer *renderer,
-        TTF_Font *font,
-        SDL_Color *color,
-        SDL_Texture *texs[]
-) {
-        SDL_Surface *surface;
-        int i;
-        char sz[2] = "i";
-
-        for (i = 0; i < 9; ++i) {
-                sz[0] = '0' + i + 1;
-                surface = TTF_RenderUTF8_Blended(font, sz, *color);
-                texs[i] = SDL_CreateTextureFromSurface(renderer, surface);
-                SDL_FreeSurface(surface);
-        }
-}
-
-static void destroy_digits(
-        SDL_Texture *texs[]
-) {
-        int i;
-
-        for (i = 0; i < 9; ++i) {
-                SDL_DestroyTexture(texs[i]);
-        }
-}
-
 /* Color Scheme Definition */
 
 SDL_Color white       = { 0xFF, 0xFF, 0xFF, 0xFF };
@@ -56,6 +21,127 @@ SDL_Color *clickable_color  = &light_green;
 SDL_Color *hovered_color    = &orange;
 SDL_Color *timer_color      = &black;
 
+/* Main Context Structure */
+
+struct ctx {
+        SDL_Window *window;
+        SDL_Renderer *renderer;
+        TTF_Font *font;
+        int millis_per_frame;
+        unsigned int last_render_time;
+};
+
+#define DEFAULT_FRAME_RATE 30
+
+static void destroy_context(
+        struct ctx *ctx
+) {
+        if (ctx->font)
+                TTF_CloseFont(ctx->font);
+        if (ctx->renderer)
+                SDL_DestroyRenderer(ctx->renderer);
+        if (ctx->window)
+                SDL_DestroyWindow(ctx->window);
+        TTF_Quit();
+        SDL_Quit();
+        free(ctx);
+}
+
+struct ctx *create_context(
+        void
+) {
+        SDL_DisplayMode mode;
+        int refresh_rate;
+        struct ctx *ctx = calloc(1, sizeof(struct ctx));
+
+        if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+                SDL_Log("Failed to init SDL: %s\n", SDL_GetError());
+                destroy_context(ctx);
+                return NULL;
+        }
+
+        if (TTF_Init() != 0) {
+                SDL_Log("Failed to init TTF: %s\n", TTF_GetError());
+                destroy_context(ctx);
+                return NULL;
+        }
+
+        if (SDL_GetDisplayMode(0, 0, &mode) != 0) {
+                SDL_Log("Failed to get best display mode: %s\n", SDL_GetError());
+                destroy_context(ctx);
+                return NULL;
+        }
+
+        refresh_rate = (mode.refresh_rate == 0)
+                ? DEFAULT_FRAME_RATE
+                : mode.refresh_rate;
+        ctx->millis_per_frame = 1000 / refresh_rate;
+
+        ctx->window = SDL_CreateWindow(
+                "Sudoku",
+                SDL_WINDOWPOS_CENTERED,
+                SDL_WINDOWPOS_CENTERED,
+                1024, 768,
+                SDL_WINDOW_SHOWN
+        );
+        if (!ctx->window) {
+                SDL_Log("Failed to create window: %s\n", SDL_GetError());
+                destroy_context(ctx);
+                return NULL;
+        }
+
+        ctx->renderer = SDL_CreateRenderer(ctx->window, -1, SDL_RENDERER_SOFTWARE);
+        if (!ctx->renderer) {
+                SDL_Log("Failed to create renderer: %s\n", SDL_GetError());
+                destroy_context(ctx);
+                return NULL;
+        }
+
+        ctx->font = TTF_OpenFont("C:/Windows/Fonts/Arial.ttf", 24);
+        if (!ctx->font) {
+                SDL_Log("Failed to open fond: %s\n", TTF_GetError());
+                destroy_context(ctx);
+                return NULL;
+        }
+
+        return ctx;
+}
+
+/* Simplify Digit Drawing by Caching */
+
+static SDL_Texture **create_digits(
+        struct ctx *ctx,
+        SDL_Color *color
+) {
+        SDL_Texture **digits;
+        SDL_Surface *surface;
+        int i;
+        char glyph;
+
+        digits = malloc(9 * sizeof(SDL_Texture *));
+        if (!digits) {
+                SDL_Log("Failed to allocate memory for digits\n");
+                return NULL;
+        }
+        for (i = 0; i < 9; ++i) {
+                glyph = '1' + i;
+                surface = TTF_RenderGlyph_Blended(ctx->font, glyph, *color);
+                digits[i] = SDL_CreateTextureFromSurface(ctx->renderer, surface);
+                SDL_FreeSurface(surface);
+        }
+        return digits;
+}
+
+static void destroy_digits(
+        SDL_Texture **digits
+) {
+        int i;
+
+        for (i = 0; i < 9; ++i)
+                SDL_DestroyTexture(digits[i]);
+        free(digits);
+}
+
 /* Main GUI Element, Button */
 
 enum state {
@@ -71,34 +157,65 @@ struct button {
 
 #define ROWS 9
 #define COLS 9
+#define TILE_SIZE 50
+#define TILE_GAP 3
 
-struct button buttons[ROWS * COLS];
-
-static void init_buttons(
-        struct button *buttons
+static struct button *create_buttons(
+        void
 ) {
-        int x, y;
+        struct button *buttons;
+        int x, y, pos;
 
+        buttons = malloc(ROWS * COLS * sizeof(struct button));
+        if (!buttons) {
+                SDL_Log("Failed to allocate memory for buttons\n");
+                return NULL;
+        }
+        pos = 0;
         for (y = 0; y < ROWS; ++y)
                 for (x = 0; x < COLS; ++x) {
-                        buttons->x = x;
-                        buttons->y = y;
-                        buttons->val = 1;
-                        buttons->state = IDLE;
-                        ++buttons;
+                        buttons[pos].x = x;
+                        buttons[pos].y = y;
+                        buttons[pos].val = 1;
+                        buttons[pos].state = IDLE;
+                        ++pos;
                 }
+        return buttons;
 }
 
-/* Utility Wrappers to Simplify SDL for Myself */
+static void destroy_buttons(
+        struct button *buttons
+) {
+        free(buttons);
+}
+
+/* Utility Wrappers to Simplify SDL */
 
 static void set_draw_color(
-        SDL_Renderer *r,
-        SDL_Color *c
+        struct ctx *ctx,
+        SDL_Color *col
 ) {
-        SDL_SetRenderDrawColor(r, c->r, c->g, c->b, c->a);
+        SDL_SetRenderDrawColor(ctx->renderer, col->r, col->g, col->b, col->a);
 }
 
-#define DEFAULT_FRAME_RATE 30
+static void clear_screen(
+        struct ctx *ctx
+) {
+        set_draw_color(ctx, background_color);
+        SDL_RenderClear(ctx->renderer);
+}
+
+static void present_screen(
+        struct ctx *ctx
+) {
+        unsigned int min_render_time;
+
+        min_render_time = ctx->last_render_time + ctx->millis_per_frame;
+        if (SDL_GetTicks() < min_render_time)
+                SDL_Delay(min_render_time - SDL_GetTicks());
+        ctx->last_render_time = SDL_GetTicks();
+        SDL_RenderPresent(ctx->renderer);
+}
 
 int WinMain(
         HINSTANCE hInstance,
@@ -106,76 +223,39 @@ int WinMain(
         LPSTR lpCmdLine,
         int nShowCmd
 ) {
-        SDL_DisplayMode mode;
-        SDL_Window *window;
-        SDL_Renderer *renderer;
+        struct ctx *ctx;
+        SDL_Texture **digits;
+        struct button *buttons;
         SDL_Rect rect, dstrect;
         SDL_Event event;
         SDL_Surface *text;
+        SDL_Texture *tex;
         SDL_Texture *texture;
-        TTF_Font *font;
         SDL_Point mouse_pos;
         int x, y, mouse_bt, w, h;
         int res = 0, quit = 0;
-        unsigned int last_render_time;
-        unsigned int target_render_time;
-        int refresh_rate;
-        int millis_on_frame;
 
-        if (SDL_Init(SDL_INIT_VIDEO)) {
-                SDL_Log("Failed to init SDL: %s\n", SDL_GetError());
+        ctx = create_context();
+        if (!ctx) {
+                SDL_Log("Failed to create context\n");
                 return -1;
         }
 
-        if (TTF_Init()) {
-                SDL_Log("Failed to init TTF: %s\n", TTF_GetError());
-                res = -2;
-                goto cleanup_sdl;
+        digits = create_digits(ctx, digit_color);
+        if (!digits) {
+                SDL_Log("Failed to create digits\n");
+                destroy_context(ctx);
+                return -1;
         }
 
-        if (SDL_GetNumVideoDisplays() < 1) {
-                SDL_Log("Failed to get number of displays: %s\n", SDL_GetError());
-                res = -2;
-                goto cleanup_sdl;
+        buttons = create_buttons();
+        if (!buttons) {
+                SDL_Log("Failed to create buttons\n");
+                destroy_context(ctx);
+                destroy_digits(digits);
+                return -1;
         }
 
-        if (SDL_GetDisplayMode(0, 0, &mode) != 0) {
-                SDL_Log("Failed to get best display mode: %s\n", SDL_GetError());
-                res = -2;
-                goto cleanup_sdl;
-        }
-        refresh_rate = (mode.refresh_rate == 0 ? DEFAULT_FRAME_RATE : mode.refresh_rate);
-        millis_on_frame = 1000 / refresh_rate;
-        SDL_Log("Initialized with frame rate of %d, millis on frame: %d\n", refresh_rate, millis_on_frame);
-
-        window = SDL_CreateWindow(
-                "Sudoku", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                1024, 768, SDL_WINDOW_SHOWN
-        );
-        if (!window) {
-                SDL_Log("Failed to create window: %s\n", SDL_GetError());
-                res = -3;
-                goto cleanup_ttf;
-        }
-
-        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
-        if (!renderer) {
-                SDL_Log("Failed to create renderer: %s\n", SDL_GetError());
-                res = -4;
-                goto cleanup_window;
-        }
-
-        font = TTF_OpenFont("C:/Windows/Fonts/Arial.ttf", 24);
-        if (!font) {
-                SDL_Log("Failed to open fond: %s\n", TTF_GetError());
-                res = -5;
-                goto cleanup_renderer;
-        }
-
-        buffer_digits(renderer, font, digit_color, digits_cache);
-        init_buttons(buttons);
-
-        last_render_time = SDL_GetTicks();
         while (!quit) {
                 while (SDL_PollEvent(&event)) {
                         if (event.type == SDL_QUIT)
@@ -184,11 +264,9 @@ int WinMain(
                                 if (event.key.keysym.sym == SDLK_ESCAPE)
                                         quit = 1;
                 }
-
-                set_draw_color(renderer, background_color);
-                SDL_RenderClear(renderer);
-
                 mouse_bt = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
+
+                clear_screen(ctx);
 
                 rect.w = rect.h = TILE_SIZE;
                 for (y = 0; y < ROWS; ++y)
@@ -204,24 +282,24 @@ int WinMain(
                                 if (y >= 6)
                                         rect.y += TILE_GAP * 2;
 
-                                set_draw_color(renderer, clickable_color);
+                                set_draw_color(ctx, clickable_color);
                                 if (SDL_PointInRect(&mouse_pos, &rect))
-                                        set_draw_color(renderer, hovered_color);
-                                SDL_RenderFillRect(renderer, &rect);
+                                        set_draw_color(ctx, hovered_color);
+                                SDL_RenderFillRect(ctx->renderer, &rect);
 
                                 if (buttons[y + x].val > 0) {
-                                        SDL_Texture *tex = digits_cache[buttons[y + x].val - 1];
+                                        tex = digits[buttons[y + x].val - 1];
                                         SDL_QueryTexture(tex, NULL, NULL, &w, &h);
                                         dstrect.x = rect.x;
                                         dstrect.y = rect.y;
                                         dstrect.w = w;
                                         dstrect.h = h;
-                                        SDL_RenderCopy(renderer, tex, NULL, &dstrect);
+                                        SDL_RenderCopy(ctx->renderer, tex, NULL, &dstrect);
                                 }
                         }
 
-                text = TTF_RenderUTF8_Blended(font, "00:00", *timer_color);
-                texture = SDL_CreateTextureFromSurface(renderer, text);
+                text = TTF_RenderUTF8_Blended(ctx->font, "00:00", *timer_color);
+                texture = SDL_CreateTextureFromSurface(ctx->renderer, text);
 
                 SDL_QueryTexture(texture, NULL, NULL, &w, &h);
                 dstrect.x = 0;
@@ -229,29 +307,16 @@ int WinMain(
                 dstrect.w = w;
                 dstrect.h = h;
 
-                SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+                SDL_RenderCopy(ctx->renderer, texture, NULL, &dstrect);
 
                 SDL_DestroyTexture(texture);
                 SDL_FreeSurface(text);
 
-                target_render_time = last_render_time + millis_on_frame;
-                if (SDL_GetTicks() < target_render_time)
-                        SDL_Delay(target_render_time - SDL_GetTicks());
-                last_render_time = SDL_GetTicks();
-
-                SDL_RenderPresent(renderer);
+                present_screen(ctx);
         }
 
-        destroy_digits(digits_cache);
-
-        TTF_CloseFont(font);
-cleanup_renderer:
-        SDL_DestroyRenderer(renderer);
-cleanup_window:
-        SDL_DestroyWindow(window);
-cleanup_ttf:
-        TTF_Quit();
-cleanup_sdl:
-        SDL_Quit();
-        return res;
+        destroy_buttons(buttons);
+        destroy_digits(digits);
+        destroy_context(ctx);
+        return 0;
 }
