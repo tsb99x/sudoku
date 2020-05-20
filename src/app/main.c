@@ -205,6 +205,45 @@ static void clear_screen(
         SDL_RenderClear(ctx->renderer);
 }
 
+static void draw_buttons(
+        struct ctx *ctx,
+        SDL_Texture **digits,
+        struct button *buttons,
+        SDL_Point mouse_pos
+) {
+        SDL_Rect rect, dstrect;
+        SDL_Texture *tex;
+        int x, y;
+
+        rect.w = rect.h = TILE_SIZE;
+        for (y = 0; y < ROWS; ++y)
+                for (x = 0; x < COLS; ++x) {
+                        rect.x = x * (TILE_SIZE + TILE_GAP);
+                        if (x >= 3)
+                                rect.x += TILE_GAP * 2;
+                        if (x >= 6)
+                                rect.x += TILE_GAP * 2;
+                        rect.y = y * (TILE_SIZE + TILE_GAP);
+                        if (y >= 3)
+                                rect.y += TILE_GAP * 2;
+                        if (y >= 6)
+                                rect.y += TILE_GAP * 2;
+
+                        set_draw_color(ctx, clickable_color);
+                        if (SDL_PointInRect(&mouse_pos, &rect))
+                                set_draw_color(ctx, hovered_color);
+                        SDL_RenderFillRect(ctx->renderer, &rect);
+
+                        if (buttons[y + x].val > 0) {
+                                tex = digits[buttons[y + x].val - 1];
+                                dstrect.x = rect.x;
+                                dstrect.y = rect.y;
+                                SDL_QueryTexture(tex, NULL, NULL, &dstrect.w, &dstrect.h);
+                                SDL_RenderCopy(ctx->renderer, tex, NULL, &dstrect);
+                        }
+                }
+}
+
 static void draw_timer(
         struct ctx *ctx
 ) {
@@ -255,11 +294,8 @@ int WinMain(
         struct ctx *ctx;
         SDL_Texture **digits;
         struct button *buttons;
-        SDL_Rect rect, dstrect;
         SDL_Event event;
-        SDL_Texture *tex;
         SDL_Point mouse_pos;
-        int x, y, mouse_bt;
         int quit;
 
         ctx = create_context();
@@ -292,38 +328,9 @@ int WinMain(
                                 if (event.key.keysym.sym == SDLK_ESCAPE)
                                         quit = 1;
                 }
-                mouse_bt = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
-
+                SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
                 clear_screen(ctx);
-
-                rect.w = rect.h = TILE_SIZE;
-                for (y = 0; y < ROWS; ++y)
-                        for (x = 0; x < COLS; ++x) {
-                                rect.x = x * (TILE_SIZE + TILE_GAP);
-                                if (x >= 3)
-                                        rect.x += TILE_GAP * 2;
-                                if (x >= 6)
-                                        rect.x += TILE_GAP * 2;
-                                rect.y = y * (TILE_SIZE + TILE_GAP);
-                                if (y >= 3)
-                                        rect.y += TILE_GAP * 2;
-                                if (y >= 6)
-                                        rect.y += TILE_GAP * 2;
-
-                                set_draw_color(ctx, clickable_color);
-                                if (SDL_PointInRect(&mouse_pos, &rect))
-                                        set_draw_color(ctx, hovered_color);
-                                SDL_RenderFillRect(ctx->renderer, &rect);
-
-                                if (buttons[y + x].val > 0) {
-                                        tex = digits[buttons[y + x].val - 1];
-                                        dstrect.x = rect.x;
-                                        dstrect.y = rect.y;
-                                        SDL_QueryTexture(tex, NULL, NULL, &dstrect.w, &dstrect.h);
-                                        SDL_RenderCopy(ctx->renderer, tex, NULL, &dstrect);
-                                }
-                        }
-
+                draw_buttons(ctx, digits, buttons, mouse_pos);
                 draw_timer(ctx);
                 present_screen(ctx);
         }
