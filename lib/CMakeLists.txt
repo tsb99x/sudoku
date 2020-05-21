@@ -23,6 +23,10 @@ set_target_properties(SDL2 PROPERTIES
         IMPORTED_LOCATION ${SDL_DIR}/lib/${ARCH_DIR}/SDL2.dll
         IMPORTED_IMPLIB ${SDL_DIR}/lib/${ARCH_DIR}/SDL2.lib)
 
+add_library(SDL2main STATIC IMPORTED GLOBAL)
+set_target_properties(SDL2main PROPERTIES
+        IMPORTED_LOCATION ${SDL_DIR}/lib/${ARCH_DIR}/SDL2main.lib)
+
 add_library(SDL2_ttf SHARED IMPORTED GLOBAL)
 set_target_properties(SDL2_ttf PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES ${TTF_DIR}/include

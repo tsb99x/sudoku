@@ -285,11 +285,9 @@ static void present_screen(
         SDL_RenderPresent(ctx->renderer);
 }
 
-int WinMain(
-        HINSTANCE hInstance,
-        HINSTANCE hPrevInstance,
-        LPSTR lpCmdLine,
-        int nShowCmd
+int main(
+        int argc,
+        char *argv[]
 ) {
         struct ctx *ctx;
         SDL_Texture **digits;
