@@ -1,3 +1,5 @@
+#include <layout.h>
+
 #include <sdl.h>
 #include <sdl_ttf.h>
 #include <windows.h>
@@ -82,7 +84,7 @@ struct ctx *create_context(
                 SDL_WINDOWPOS_CENTERED,
                 SDL_WINDOWPOS_CENTERED,
                 1024, 768,
-                SDL_WINDOW_SHOWN
+                SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
         );
         if (!ctx->window) {
                 SDL_Log("Failed to create window: %s\n", SDL_GetError());
@@ -151,7 +153,7 @@ enum state {
 };
 
 struct button {
-        int x, y, val;
+        int x, y, size, val;
         enum state state;
 };
 
@@ -215,32 +217,26 @@ static void draw_buttons(
         SDL_Texture *tex;
         int x, y;
 
-        rect.w = rect.h = TILE_SIZE;
         for (y = 0; y < ROWS; ++y)
                 for (x = 0; x < COLS; ++x) {
-                        rect.x = x * (TILE_SIZE + TILE_GAP);
-                        if (x >= 3)
-                                rect.x += TILE_GAP * 2;
-                        if (x >= 6)
-                                rect.x += TILE_GAP * 2;
-                        rect.y = y * (TILE_SIZE + TILE_GAP);
-                        if (y >= 3)
-                                rect.y += TILE_GAP * 2;
-                        if (y >= 6)
-                                rect.y += TILE_GAP * 2;
+                        rect.x = buttons->x;
+                        rect.y = buttons->y;
+                        rect.w = buttons->size;
+                        rect.h = buttons->size;
 
                         set_draw_color(ctx, clickable_color);
                         if (SDL_PointInRect(&mouse_pos, &rect))
                                 set_draw_color(ctx, hovered_color);
                         SDL_RenderFillRect(ctx->renderer, &rect);
 
-                        if (buttons[y + x].val > 0) {
-                                tex = digits[buttons[y + x].val - 1];
+                        if (buttons->val > 0) {
+                                tex = digits[buttons->val - 1];
                                 dstrect.x = rect.x;
                                 dstrect.y = rect.y;
                                 SDL_QueryTexture(tex, NULL, NULL, &dstrect.w, &dstrect.h);
                                 SDL_RenderCopy(ctx->renderer, tex, NULL, &dstrect);
                         }
+                        ++buttons;
                 }
 }
 
@@ -285,6 +281,69 @@ static void present_screen(
         SDL_RenderPresent(ctx->renderer);
 }
 
+#define CANVAS_PADDING_PC .03f
+#define TIMER_H 50
+#define S_GAP_PC .01f
+#define L_GAP_PC .03f
+
+static void position_buttons(
+        SDL_Rect *screen,
+        struct button *buttons
+) {
+        SDL_Rect canvas;
+        int button_size, iy, ix, pos_y, pos_x, small_gap, large_gap;
+
+        canvas = layout_calc_drawable_space(screen);
+        canvas = layout_add_padding(&canvas, CANVAS_PADDING_PC);
+        canvas = layout_compensate_timer(&canvas, TIMER_H);
+        button_size = layout_find_button_size(&canvas, S_GAP_PC, L_GAP_PC);
+
+        small_gap = (int) (canvas.w * S_GAP_PC);
+        large_gap = (int) (canvas.w * L_GAP_PC);
+
+        pos_y = canvas.y;
+        for (iy = 0; iy < ROWS; ++iy) {
+                pos_x = canvas.x;
+                for (ix = 0; ix < COLS; ++ix) {
+                        buttons->x = pos_x;
+                        buttons->y = pos_y;
+                        buttons->size = button_size;
+                        ++buttons;
+                        pos_x += button_size;
+                        pos_x += (ix + 1) % 3
+                                ? small_gap
+                                : large_gap;
+                }
+                pos_y += button_size;
+                pos_y += (iy + 1) % 3
+                        ? small_gap
+                        : large_gap;
+        }
+}
+
+static void on_window_event(
+        SDL_WindowEvent *e,
+        struct button *buttons
+) {
+        SDL_Rect screen;
+
+        if (e->event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                screen.x = 0;
+                screen.y = 0;
+                screen.w = e->data1;
+                screen.h = e->data2;
+                position_buttons(&screen, buttons);
+        }
+}
+
+static void on_keydown_event(
+        SDL_KeyboardEvent *e,
+        int *quit
+) {
+        if (e->keysym.sym == SDLK_ESCAPE)
+                *quit = 1;
+}
+
 int main(
         int argc,
         char *argv[]
@@ -292,6 +351,7 @@ int main(
         struct ctx *ctx;
         SDL_Texture **digits;
         struct button *buttons;
+        SDL_Rect screen;
         SDL_Event event;
         SDL_Point mouse_pos;
         int quit;
@@ -317,14 +377,19 @@ int main(
                 return -1;
         }
 
+        screen.x = screen.y = 0;
+        SDL_GetWindowSize(ctx->window, &screen.w, &screen.h);
+        position_buttons(&screen, buttons);
+
         quit = 0;
         while (!quit) {
                 while (SDL_PollEvent(&event)) {
                         if (event.type == SDL_QUIT)
                                 quit = 1;
+                        if (event.type == SDL_WINDOWEVENT)
+                                on_window_event(&event.window, buttons);
                         if (event.type == SDL_KEYDOWN)
-                                if (event.key.keysym.sym == SDLK_ESCAPE)
-                                        quit = 1;
+                                on_keydown_event(&event.key, &quit);
                 }
                 SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
                 clear_screen(ctx);

@@ -3,6 +3,7 @@ add_executable(${PROJECT_NAME} WIN32
 target_link_libraries(${PROJECT_NAME}
         SDL2
         SDL2main
+        layout
         SDL2_ttf)
 
 foreach(LIB SDL2 SDL2_ttf FreeType ZLib)
