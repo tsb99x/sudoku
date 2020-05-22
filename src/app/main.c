@@ -159,8 +159,6 @@ struct button {
 
 #define ROWS 9
 #define COLS 9
-#define TILE_SIZE 50
-#define TILE_GAP 3
 
 static struct button *create_buttons(
         void
