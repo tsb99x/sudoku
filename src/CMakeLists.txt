@@ -5,7 +5,6 @@ add_library(context
         context.h)
 target_link_libraries(context
         SDL2
-        SDL2main
         SDL2_ttf)
 
 add_library(layout
@@ -22,6 +21,14 @@ add_library(button
         button.c
         button.h)
 target_link_libraries(button
+        context
+        grid
+        SDL2)
+
+add_library(palette
+        palette.c
+        palette.h)
+target_link_libraries(palette
         SDL2)
 
 # Application
@@ -31,13 +38,13 @@ set(EXT_LIBS
         SDL2main
         SDL2_ttf)
 set(INT_LIBS
+        button
         context
-        layout
         grid
-        button)
+        layout
+        palette)
 add_executable(${PROJECT_NAME} WIN32
-        main.c
-        palette.h)
+        main.c)
 target_link_libraries(${PROJECT_NAME}
         ${EXT_LIBS}
         ${INT_LIBS})

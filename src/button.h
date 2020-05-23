@@ -1,19 +1,9 @@
 #pragma once
 
+#include "context.h"
 #include "grid.h"
 
-/* Main GUI Element, Button */
-
-typedef enum state {
-        IDLE,
-        HOVERED,
-        CLICKED
-} state_t;
-
-typedef struct button {
-        int x, y, size, val;
-        state_t state;
-} button_t;
+typedef struct button button_t;
 
 button_t *buttons_create(
         grid_t *grid
@@ -21,4 +11,16 @@ button_t *buttons_create(
 
 void buttons_destroy(
         button_t *buttons
+);
+
+void buttons_draw(
+        button_t *self,
+        context_t *ctx,
+        SDL_Texture **digits,
+        SDL_Point mouse_pos
+);
+
+void buttons_position(
+        button_t *self,
+        SDL_Rect *screen
 );

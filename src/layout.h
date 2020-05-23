@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sdl.h>
+#include <SDL.h>
 
 SDL_Rect layout_calc_drawable_space(
         SDL_Rect *screen_space

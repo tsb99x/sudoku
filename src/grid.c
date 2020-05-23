@@ -1,12 +1,20 @@
 #include "grid.h"
 
+#include <stdlib.h>
 #include <string.h>
 
-grid_t grid_create(
+typedef struct grid {
+        char cells[CELLS_LEN];
+} grid_t;
+
+grid_t *grid_create(
         void
 ) {
-        grid_t grid;
+        grid_t *self;
 
+        self = malloc(sizeof(grid_t));
+        if (!self)
+                return NULL;
         char cells_initializer[CELLS_LEN] = {
                 1, 2, 3,  4, 5, 6,  7, 8, 9,
                 4, 5, 6,  7, 8, 9,  1, 2, 3,
@@ -20,6 +28,20 @@ grid_t grid_create(
                 9, 3, 1,  6, 7, 2,  8, 4, 5,
                 8, 6, 4,  9, 1, 5,  2, 3, 7
         };
-        memcpy(grid.cells, cells_initializer, CELLS_LEN * sizeof(char));
-        return grid;
+        memcpy(self->cells, cells_initializer, CELLS_LEN * sizeof(char));
+        return self;
+}
+
+void grid_destroy(
+        grid_t *self
+) {
+        free(self);
+}
+
+char grid_cell_at(
+        grid_t *self,
+        int x,
+        int y
+) {
+        return self->cells[y * COLS + x];
 }

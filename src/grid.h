@@ -4,15 +4,18 @@
 #define COLS 9
 #define CELLS_LEN ROWS * COLS
 
-typedef struct grid {
-        char cells[CELLS_LEN];
-} grid_t;
+typedef struct grid grid_t;
 
-grid_t grid_create(
+grid_t *grid_create(
         void
 );
 
+void grid_destroy(
+        grid_t *self
+);
+
 char grid_cell_at(
+        grid_t *self,
         int x,
         int y
 );
