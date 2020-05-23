@@ -61,7 +61,7 @@ static void draw_timer(
 
 static void on_window_event(
         SDL_WindowEvent *e,
-        struct button *buttons
+        button_t *buttons
 ) {
         SDL_Rect screen;
 

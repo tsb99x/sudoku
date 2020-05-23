@@ -13,10 +13,10 @@ typedef enum state {
         CLICKED
 } state_t;
 
-typedef struct button {
+struct button {
         int x, y, size, val;
         state_t state;
-} button_t;
+};
 
 static void assign_state(
         button_t *buttons,

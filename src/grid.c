@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct grid {
+struct grid {
         char cells[CELLS_LEN];
-} grid_t;
+};
 
 grid_t *grid_create(
         void

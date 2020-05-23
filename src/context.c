@@ -4,13 +4,13 @@
 
 #include <stdlib.h>
 
-typedef struct context {
+struct context {
         SDL_Window *window;
         SDL_Renderer *renderer;
         TTF_Font *font;
         int millis_per_frame;
         unsigned int last_render_time;
-} context_t;
+};
 
 #define DEFAULT_FRAME_RATE 30
 
@@ -144,7 +144,6 @@ void context_draw_string(
 ) {
         SDL_Surface *surface;
         SDL_Texture *texture;
-        SDL_Rect dstrect;
 
         surface = TTF_RenderUTF8_Blended(self->font, str, *color);
         texture = SDL_CreateTextureFromSurface(self->renderer, surface);
