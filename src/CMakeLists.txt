@@ -1,5 +1,13 @@
 # Internal Libraries
 
+add_library(context
+        context.c
+        context.h)
+target_link_libraries(context
+        SDL2
+        SDL2main
+        SDL2_ttf)
+
 add_library(layout
         layout.c
         layout.h)
@@ -18,10 +26,12 @@ set(EXT_LIBS
         SDL2main
         SDL2_ttf)
 set(INT_LIBS
-        grid
-        layout)
+        context
+        layout
+        grid)
 add_executable(${PROJECT_NAME} WIN32
-        main.c)
+        main.c
+        palette.h)
 target_link_libraries(${PROJECT_NAME}
         ${EXT_LIBS}
         ${INT_LIBS})
