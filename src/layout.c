@@ -24,12 +24,12 @@ SDL_Rect layout_add_padding(
         float padding_in_percents
 ) {
         SDL_Rect padded;
+        int padding_in_px = (int) (padding_in_percents * canvas->w);
 
-        padding_in_percents *= canvas->w;
-        padded.x = canvas->x + padding_in_percents;
-        padded.y = canvas->y + padding_in_percents;
-        padded.w = canvas->w - padding_in_percents * 2;
-        padded.h = canvas->h - padding_in_percents * 2;
+        padded.x = canvas->x + padding_in_px;
+        padded.y = canvas->y + padding_in_px;
+        padded.w = canvas->w - padding_in_px * 2;
+        padded.h = canvas->h - padding_in_px * 2;
         return padded;
 }
 
@@ -51,7 +51,8 @@ int layout_find_button_size(
         float small_gap_size,
         float big_gap_size
 ) {
-        small_gap_size *= canvas->w;
-        big_gap_size *= canvas->w;
-        return (canvas->w - (6 * small_gap_size) - (2 * big_gap_size)) / 9;
+        int small_gap_in_px = (int) (small_gap_size * canvas->w);
+        int big_gap_in_px = (int) (big_gap_size * canvas->w);
+
+        return (canvas->w - (6 * small_gap_in_px) - (2 * big_gap_in_px)) / 9;
 }

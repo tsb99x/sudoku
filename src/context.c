@@ -19,7 +19,11 @@ context_t *context_create(
 ) {
         SDL_DisplayMode mode;
         int refresh_rate;
-        context_t *self = calloc(1, sizeof(context_t));
+        context_t *self;
+
+        self = calloc(1, sizeof(context_t));
+        if (!self)
+                return NULL;
 
         if (SDL_Init(SDL_INIT_VIDEO) != 0) {
                 SDL_Log("Failed to init SDL: %s\n", SDL_GetError());
@@ -114,12 +118,12 @@ void context_draw_texture(
         SDL_Texture *texture,
         SDL_Point *pos
 ) {
-        SDL_Rect dstrect;
+        SDL_Rect rect;
 
-        dstrect.x = pos->x;
-        dstrect.y = pos->y;
-        SDL_QueryTexture(texture, NULL, NULL, &dstrect.w, &dstrect.h);
-        SDL_RenderCopy(self->renderer, texture, NULL, &dstrect);
+        rect.x = pos->x;
+        rect.y = pos->y;
+        SDL_QueryTexture(texture, NULL, NULL, &rect.w, &rect.h);
+        SDL_RenderCopy(self->renderer, texture, NULL, &rect);
 }
 
 SDL_Texture *context_prepare_glyph(

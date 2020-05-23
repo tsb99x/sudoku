@@ -13,8 +13,7 @@
 /* Simplify Digit Drawing by Caching */
 
 static SDL_Texture **create_digits(
-        context_t *ctx,
-        SDL_Color *color
+        context_t *ctx
 ) {
         SDL_Texture **digits;
         int i;
@@ -26,8 +25,8 @@ static SDL_Texture **create_digits(
                 return NULL;
         }
         for (i = 0; i < 9; ++i) {
-                glyph = '1' + i;
-                digits[i] = context_prepare_glyph(ctx, '1' + i, digit_color);
+                glyph = (char) ('1' + i);
+                digits[i] = context_prepare_glyph(ctx, glyph, digit_color);
         }
         return digits;
 }
@@ -82,10 +81,15 @@ static void on_keydown_event(
                 *quit = 1;
 }
 
+#define UNUSED(V) (void)(V)
+
 int main(
         int argc,
         char *argv[]
 ) {
+        UNUSED(argc);
+        UNUSED(argv);
+
         context_t *ctx;
         SDL_Texture **digits;
         grid_t *grid;
@@ -101,7 +105,7 @@ int main(
                 return -1;
         }
 
-        digits = create_digits(ctx, digit_color);
+        digits = create_digits(ctx);
         if (!digits) {
                 SDL_Log("Failed to create digits\n");
                 context_destroy(ctx);
