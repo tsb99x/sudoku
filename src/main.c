@@ -3,6 +3,7 @@
 #include "context.h"
 #include "layout.h"
 #include "grid.h"
+#include "button.h"
 
 #include <sdl.h>
 #include <sdl_ttf.h>
@@ -42,51 +43,6 @@ static void destroy_digits(
         for (i = 0; i < 9; ++i)
                 SDL_DestroyTexture(digits[i]);
         free(digits);
-}
-
-/* Main GUI Element, Button */
-
-enum state {
-        IDLE,
-        HOVERED,
-        CLICKED
-};
-
-struct button {
-        int x, y, size, val;
-        enum state state;
-};
-
-#define ROWS 9
-#define COLS 9
-
-static struct button *create_buttons(
-        struct grid *grid
-) {
-        struct button *buttons;
-        int x, y, pos;
-
-        buttons = malloc(ROWS * COLS * sizeof(struct button));
-        if (!buttons) {
-                SDL_Log("Failed to allocate memory for buttons\n");
-                return NULL;
-        }
-        pos = 0;
-        for (y = 0; y < ROWS; ++y)
-                for (x = 0; x < COLS; ++x) {
-                        buttons[pos].x = x;
-                        buttons[pos].y = y;
-                        buttons[pos].val = grid->cells[pos];
-                        buttons[pos].state = IDLE;
-                        ++pos;
-                }
-        return buttons;
-}
-
-static void destroy_buttons(
-        struct button *buttons
-) {
-        free(buttons);
 }
 
 /* Utility Wrappers to Simplify SDL */
@@ -249,7 +205,7 @@ int main(
         context_t *ctx;
         SDL_Texture **digits;
         grid_t grid;
-        struct button *buttons;
+        button_t *buttons;
         SDL_Rect screen;
         SDL_Event event;
         SDL_Point mouse_pos;
@@ -270,7 +226,7 @@ int main(
 
         grid = grid_create();
 
-        buttons = create_buttons(&grid);
+        buttons = buttons_create(&grid);
         if (!buttons) {
                 SDL_Log("Failed to create buttons\n");
                 context_destroy(ctx);
@@ -299,7 +255,7 @@ int main(
                 present_screen(ctx);
         }
 
-        destroy_buttons(buttons);
+        buttons_destroy(buttons);
         destroy_digits(digits);
         context_destroy(ctx);
         return 0;

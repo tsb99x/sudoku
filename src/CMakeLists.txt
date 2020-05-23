@@ -12,12 +12,17 @@ add_library(layout
         layout.c
         layout.h)
 target_link_libraries(layout
-        SDL2
-        SDL2main)
+        SDL2)
 
 add_library(grid
         grid.c
         grid.h)
+
+add_library(button
+        button.c
+        button.h)
+target_link_libraries(button
+        SDL2)
 
 # Application
 
@@ -28,7 +33,8 @@ set(EXT_LIBS
 set(INT_LIBS
         context
         layout
-        grid)
+        grid
+        button)
 add_executable(${PROJECT_NAME} WIN32
         main.c
         palette.h)
@@ -49,7 +55,8 @@ endforeach()
 add_executable(layout_test
         layout_test.c)
 target_link_libraries(layout_test
-        layout)
+        layout
+        SDL2main)
 add_test(NAME layout
         COMMAND layout_test)
 

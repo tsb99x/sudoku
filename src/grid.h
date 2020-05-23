@@ -1,6 +1,8 @@
 #pragma once
 
-#define CELLS_LEN 81
+#define ROWS 9
+#define COLS 9
+#define CELLS_LEN ROWS * COLS
 
 typedef struct grid {
         char cells[CELLS_LEN];
