@@ -7,6 +7,10 @@ target_link_libraries(layout
         SDL2
         SDL2main)
 
+add_library(grid
+        grid.c
+        grid.h)
+
 # Application
 
 set(EXT_LIBS
@@ -14,6 +18,7 @@ set(EXT_LIBS
         SDL2main
         SDL2_ttf)
 set(INT_LIBS
+        grid
         layout)
 add_executable(${PROJECT_NAME} WIN32
         main.c)
@@ -37,3 +42,10 @@ target_link_libraries(layout_test
         layout)
 add_test(NAME layout
         COMMAND layout_test)
+
+add_executable(grid_test
+        grid_test.c)
+target_link_libraries(grid_test
+        grid)
+add_test(NAME grid
+        COMMAND grid_test)

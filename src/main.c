@@ -1,8 +1,8 @@
 #include "layout.h"
+#include "grid.h"
 
 #include <sdl.h>
 #include <sdl_ttf.h>
-#include <windows.h>
 
 #include <stdio.h>
 
@@ -161,7 +161,7 @@ struct button {
 #define COLS 9
 
 static struct button *create_buttons(
-        void
+        struct grid *grid
 ) {
         struct button *buttons;
         int x, y, pos;
@@ -176,7 +176,7 @@ static struct button *create_buttons(
                 for (x = 0; x < COLS; ++x) {
                         buttons[pos].x = x;
                         buttons[pos].y = y;
-                        buttons[pos].val = 1;
+                        buttons[pos].val = grid->cells[pos];
                         buttons[pos].state = IDLE;
                         ++pos;
                 }
@@ -348,6 +348,7 @@ int main(
 ) {
         struct ctx *ctx;
         SDL_Texture **digits;
+        grid_t grid;
         struct button *buttons;
         SDL_Rect screen;
         SDL_Event event;
@@ -367,7 +368,9 @@ int main(
                 return -1;
         }
 
-        buttons = create_buttons();
+        grid = grid_create();
+
+        buttons = create_buttons(&grid);
         if (!buttons) {
                 SDL_Log("Failed to create buttons\n");
                 destroy_context(ctx);
