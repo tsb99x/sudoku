@@ -1,2 +1,39 @@
-add_subdirectory(app)
-add_subdirectory(layout)
+# Internal Libraries
+
+add_library(layout
+        layout.c
+        layout.h)
+target_link_libraries(layout
+        SDL2
+        SDL2main)
+
+# Application
+
+set(EXT_LIBS
+        SDL2
+        SDL2main
+        SDL2_ttf)
+set(INT_LIBS
+        layout)
+add_executable(${PROJECT_NAME} WIN32
+        main.c)
+target_link_libraries(${PROJECT_NAME}
+        ${EXT_LIBS}
+        ${INT_LIBS})
+
+foreach(LIB SDL2 SDL2_ttf FreeType ZLib)
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E echo
+                Copy $<TARGET_FILE:${LIB}> into $<TARGET_FILE_DIR:${PROJECT_NAME}>
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:${LIB}> $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+endforeach()
+
+# Tests
+
+add_executable(layout_test
+        layout_test.c)
+target_link_libraries(layout_test
+        layout)
+add_test(NAME layout
+        COMMAND layout_test)

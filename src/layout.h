@@ -1,3 +1,5 @@
+#pragma once
+
 #include <sdl.h>
 
 SDL_Rect layout_calc_drawable_space(
