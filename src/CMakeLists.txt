@@ -63,20 +63,3 @@ foreach(LIB SDL2 SDL2_ttf FreeType ZLib)
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 $<TARGET_FILE:${LIB}> $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 endforeach()
-
-# Tests
-
-add_executable(layout_test
-        layout_test.c)
-target_link_libraries(layout_test
-        layout
-        SDL2main)
-add_test(NAME layout
-        COMMAND layout_test)
-
-add_executable(grid_test
-        grid_test.c)
-target_link_libraries(grid_test
-        grid)
-add_test(NAME grid
-        COMMAND grid_test)

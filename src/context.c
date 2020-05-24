@@ -13,6 +13,7 @@ struct context {
 };
 
 #define DEFAULT_FRAME_RATE 30
+#define FONT_PATH "C:/Windows/Fonts/Arial.ttf"
 
 context_t *context_create(
         void
@@ -68,9 +69,9 @@ context_t *context_create(
                 return NULL;
         }
 
-        self->font = TTF_OpenFont("C:/Windows/Fonts/Arial.ttf", 24);
+        self->font = TTF_OpenFont(FONT_PATH, 24);
         if (!self->font) {
-                SDL_Log("Failed to open fond: %s\n", TTF_GetError());
+                SDL_Log("Failed to open font: %s\n", TTF_GetError());
                 context_destroy(self);
                 return NULL;
         }
@@ -90,6 +91,14 @@ void context_destroy(
         TTF_Quit();
         SDL_Quit();
         free(self);
+}
+
+void context_resize_font(
+        context_t *self,
+        int size
+) {
+        TTF_CloseFont(self->font);
+        self->font = TTF_OpenFont(FONT_PATH, size);
 }
 
 void context_set_draw_color(

@@ -13,6 +13,11 @@ void context_destroy(
         context_t *self
 );
 
+void context_resize_font(
+        context_t *self,
+        int size
+);
+
 void context_set_draw_color(
         context_t *self,
         SDL_Color *col

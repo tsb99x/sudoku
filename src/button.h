@@ -1,6 +1,7 @@
 #pragma once
 
 #include "context.h"
+#include "layout.h"
 #include "grid.h"
 
 typedef struct button button_t;
@@ -22,5 +23,5 @@ void buttons_draw(
 
 void buttons_position(
         button_t *self,
-        SDL_Rect *screen
+        layout_t *layout
 );

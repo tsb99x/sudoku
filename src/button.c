@@ -85,42 +85,21 @@ void buttons_draw(
                 }
 }
 
-#define CANVAS_PADDING_PC .03f
-#define TIMER_H 50
-#define S_GAP_PC .01f
-#define L_GAP_PC .03f
-
 void buttons_position(
         button_t *self,
-        SDL_Rect *screen
+        layout_t *layout
 ) {
-        SDL_Rect canvas;
-        int button_size, iy, ix, pos_y, pos_x, small_gap, large_gap;
+        int y, x;
+        SDL_Rect rect;
 
-        canvas = layout_calc_drawable_space(screen);
-        canvas = layout_add_padding(&canvas, CANVAS_PADDING_PC);
-        canvas = layout_compensate_timer(&canvas, TIMER_H);
-        button_size = layout_find_button_size(&canvas, S_GAP_PC, L_GAP_PC);
-
-        small_gap = (int) (canvas.w * S_GAP_PC);
-        large_gap = (int) (canvas.w * L_GAP_PC);
-
-        pos_y = canvas.y;
-        for (iy = 0; iy < ROWS; ++iy) {
-                pos_x = canvas.x;
-                for (ix = 0; ix < COLS; ++ix) {
-                        self->x = pos_x;
-                        self->y = pos_y;
-                        self->size = button_size;
+        for (y = 0; y < ROWS; ++y)
+                for (x = 0; x < COLS; ++x) {
+                        rect = layout_get_button_rect(layout, x, y);
+                        SDL_Log("SDL_rect { x=%d, y=%d, w=%d, h=%d }",
+                                rect.x, rect.y, rect.w, rect.h);
+                        self->x = rect.x;
+                        self->y = rect.y;
+                        self->size = rect.w;
                         ++self;
-                        pos_x += button_size;
-                        pos_x += (ix + 1) % 3
-                                ? small_gap
-                                : large_gap;
                 }
-                pos_y += button_size;
-                pos_y += (iy + 1) % 3
-                        ? small_gap
-                        : large_gap;
-        }
 }

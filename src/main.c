@@ -9,6 +9,8 @@
 
 #include <stdio.h>
 
+#define UNUSED(V) (void)(V)
+
 static void draw_timer(
         context_t *ctx
 ) {
@@ -28,8 +30,13 @@ static void draw_timer(
 
 static void on_window_event(
         SDL_WindowEvent *e,
-        button_t *buttons
+        context_t *ctx,
+        SDL_Texture **digits,
+        button_t *buttons,
+        layout_t *layout
 ) {
+        UNUSED(digits);
+
         SDL_Rect screen;
 
         if (e->event == SDL_WINDOWEVENT_SIZE_CHANGED) {
@@ -37,7 +44,10 @@ static void on_window_event(
                 screen.y = 0;
                 screen.w = e->data1;
                 screen.h = e->data2;
-                buttons_position(buttons, &screen);
+                context_resize_font(ctx, 24);
+                layout_calc(layout, &screen);
+                digits_recache(digits, ctx);
+                buttons_position(buttons, layout);
         }
 }
 
@@ -49,7 +59,10 @@ static void on_keydown_event(
                 *quit = 1;
 }
 
-#define UNUSED(V) (void)(V)
+#define CANVAS_PADDING_PC .03f
+#define TIMER_H 50
+#define S_GAP_PC .01f
+#define L_GAP_PC .03f
 
 int main(
         int argc,
@@ -62,6 +75,7 @@ int main(
         SDL_Texture **digits;
         grid_t *grid;
         button_t *buttons;
+        layout_t *layout;
         SDL_Rect screen;
         SDL_Event event;
         SDL_Point mouse_pos;
@@ -97,8 +111,19 @@ int main(
                 return -1;
         }
 
+        layout = layout_create(S_GAP_PC, L_GAP_PC, CANVAS_PADDING_PC, TIMER_H);
+        if (!layout) {
+                SDL_Log("Failed to create layout\n");
+                buttons_destroy(buttons);
+                digits_destroy(digits);
+                grid_destroy(grid);
+                context_destroy(ctx);
+                return -1;
+        }
+
         screen = context_get_screen_size(ctx);
-        buttons_position(buttons, &screen);
+        layout_calc(layout, &screen);
+        buttons_position(buttons, layout);
 
         quit = 0;
         while (!quit) {
@@ -106,7 +131,7 @@ int main(
                         if (event.type == SDL_QUIT)
                                 quit = 1;
                         if (event.type == SDL_WINDOWEVENT)
-                                on_window_event(&event.window, buttons);
+                                on_window_event(&event.window, ctx, digits, buttons, layout);
                         if (event.type == SDL_KEYDOWN)
                                 on_keydown_event(&event.key, &quit);
                 }
@@ -117,6 +142,7 @@ int main(
                 context_present_screen(ctx);
         }
 
+        layout_destroy(layout);
         buttons_destroy(buttons);
         digits_destroy(digits);
         grid_destroy(grid);
