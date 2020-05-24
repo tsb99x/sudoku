@@ -9,10 +9,9 @@
 
 #include <stdio.h>
 
-#define UNUSED(V) (void)(V)
-
 static void draw_timer(
-        context_t *ctx
+        context_t *ctx,
+        layout_t *layout
 ) {
         SDL_Point pos;
         unsigned int seconds_from_start;
@@ -24,7 +23,7 @@ static void draw_timer(
         timer_minutes = seconds_from_start / 60;
         timer_seconds = seconds_from_start % 60;
         sprintf(timer_str, "%02u:%02u", timer_minutes, timer_seconds);
-        pos.x = pos.y = 0;
+        pos = layout_get_timer_pos(layout);
         context_draw_string(ctx, timer_str, timer_color, &pos);
 }
 
@@ -35,17 +34,16 @@ static void on_window_event(
         button_t *buttons,
         layout_t *layout
 ) {
-        UNUSED(digits);
-
         SDL_Rect screen;
+        int timer_height;
 
         if (e->event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-                screen.x = 0;
-                screen.y = 0;
+                screen.x = screen.y = 0;
                 screen.w = e->data1;
                 screen.h = e->data2;
-                context_resize_font(ctx, 24);
                 layout_calc(layout, &screen);
+                timer_height = layout_get_timer_height(layout);
+                context_resize_font(ctx, timer_height);
                 digits_recache(digits, ctx);
                 buttons_position(buttons, layout);
         }
@@ -59,17 +57,18 @@ static void on_keydown_event(
                 *quit = 1;
 }
 
-#define CANVAS_PADDING_PC .03f
-#define TIMER_H 50
-#define S_GAP_PC .01f
-#define L_GAP_PC .03f
-
 int main(
         int argc,
         char *argv[]
 ) {
-        UNUSED(argc);
-        UNUSED(argv);
+        (void) argc;
+        (void) argv;
+
+        percent_t canvas_padding = .03f;
+        percent_t timer_size     = .10f;
+        percent_t timer_pad      = .01f;
+        percent_t small_gap      = .01f;
+        percent_t large_gap      = .03f;
 
         context_t *ctx;
         SDL_Texture **digits;
@@ -79,7 +78,7 @@ int main(
         SDL_Rect screen;
         SDL_Event event;
         SDL_Point mouse_pos;
-        int quit;
+        int quit, timer_height;
 
         ctx = context_create();
         if (!ctx) {
@@ -111,7 +110,8 @@ int main(
                 return -1;
         }
 
-        layout = layout_create(S_GAP_PC, L_GAP_PC, CANVAS_PADDING_PC, TIMER_H);
+        layout = layout_create(small_gap, large_gap, canvas_padding,
+                                timer_size, timer_pad);
         if (!layout) {
                 SDL_Log("Failed to create layout\n");
                 buttons_destroy(buttons);
@@ -123,6 +123,9 @@ int main(
 
         screen = context_get_screen_size(ctx);
         layout_calc(layout, &screen);
+        timer_height = layout_get_timer_height(layout);
+        context_resize_font(ctx, timer_height);
+        digits_recache(digits, ctx);
         buttons_position(buttons, layout);
 
         quit = 0;
@@ -138,7 +141,7 @@ int main(
                 SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
                 context_clear_screen(ctx);
                 buttons_draw(buttons, ctx, digits, mouse_pos);
-                draw_timer(ctx);
+                draw_timer(ctx, layout);
                 context_present_screen(ctx);
         }
 

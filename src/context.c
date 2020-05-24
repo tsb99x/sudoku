@@ -7,7 +7,7 @@
 struct context {
         SDL_Window *window;
         SDL_Renderer *renderer;
-        TTF_Font *font;
+        TTF_Font *timer, *digit;
         int millis_per_frame;
         unsigned int last_render_time;
 };
@@ -69,9 +69,16 @@ context_t *context_create(
                 return NULL;
         }
 
-        self->font = TTF_OpenFont(FONT_PATH, 24);
-        if (!self->font) {
-                SDL_Log("Failed to open font: %s\n", TTF_GetError());
+        self->timer = TTF_OpenFont(FONT_PATH, 48);
+        if (!self->timer) {
+                SDL_Log("Failed to open timer font: %s\n", TTF_GetError());
+                context_destroy(self);
+                return NULL;
+        }
+
+        self->digit = TTF_OpenFont(FONT_PATH, 48 / 2.5);
+        if (!self->timer) {
+                SDL_Log("Failed to open digit font: %s\n", TTF_GetError());
                 context_destroy(self);
                 return NULL;
         }
@@ -82,8 +89,10 @@ context_t *context_create(
 void context_destroy(
         context_t *self
 ) {
-        if (self->font)
-                TTF_CloseFont(self->font);
+        if (self->timer)
+                TTF_CloseFont(self->timer);
+        if (self->digit)
+                TTF_CloseFont(self->digit);
         if (self->renderer)
                 SDL_DestroyRenderer(self->renderer);
         if (self->window)
@@ -97,8 +106,10 @@ void context_resize_font(
         context_t *self,
         int size
 ) {
-        TTF_CloseFont(self->font);
-        self->font = TTF_OpenFont(FONT_PATH, size);
+        TTF_CloseFont(self->timer);
+        self->timer = TTF_OpenFont(FONT_PATH, size);
+        TTF_CloseFont(self->digit);
+        self->digit = TTF_OpenFont(FONT_PATH, size / 2.5);
 }
 
 void context_set_draw_color(
@@ -129,9 +140,9 @@ void context_draw_texture(
 ) {
         SDL_Rect rect;
 
-        rect.x = pos->x;
-        rect.y = pos->y;
         SDL_QueryTexture(texture, NULL, NULL, &rect.w, &rect.h);
+        rect.x = pos->x - rect.w / 2;
+        rect.y = pos->y - rect.h / 2;
         SDL_RenderCopy(self->renderer, texture, NULL, &rect);
 }
 
@@ -143,7 +154,7 @@ SDL_Texture *context_prepare_glyph(
         SDL_Surface *surface;
         SDL_Texture *texture;
 
-        surface = TTF_RenderGlyph_Blended(self->font, glyph, *color);
+        surface = TTF_RenderGlyph_Blended(self->digit, glyph, *color);
         texture = SDL_CreateTextureFromSurface(self->renderer, surface);
         SDL_FreeSurface(surface);
         return texture;
@@ -158,7 +169,7 @@ void context_draw_string(
         SDL_Surface *surface;
         SDL_Texture *texture;
 
-        surface = TTF_RenderUTF8_Blended(self->font, str, *color);
+        surface = TTF_RenderUTF8_Blended(self->timer, str, *color);
         texture = SDL_CreateTextureFromSurface(self->renderer, surface);
         context_draw_texture(self, texture, pos);
         SDL_DestroyTexture(texture);

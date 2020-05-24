@@ -77,8 +77,8 @@ void buttons_draw(
 
                         if (self->val > 0) {
                                 tex = digits[self->val - 1];
-                                pos.x = rect.x;
-                                pos.y = rect.y;
+                                pos.x = rect.x + rect.w / 2;
+                                pos.y = rect.y + rect.h / 2;
                                 context_draw_texture(ctx, tex, &pos);
                         }
                         ++self;
@@ -95,8 +95,6 @@ void buttons_position(
         for (y = 0; y < ROWS; ++y)
                 for (x = 0; x < COLS; ++x) {
                         rect = layout_get_button_rect(layout, x, y);
-                        SDL_Log("SDL_rect { x=%d, y=%d, w=%d, h=%d }",
-                                rect.x, rect.y, rect.w, rect.h);
                         self->x = rect.x;
                         self->y = rect.y;
                         self->size = rect.w;

@@ -9,7 +9,8 @@ layout_t *layout_create(
         percent_t small_gap,
         percent_t large_gap,
         percent_t screen_pad,
-        int timer_h
+        percent_t timer_size,
+        percent_t timer_pad
 );
 
 void layout_destroy(
@@ -25,4 +26,12 @@ SDL_Rect layout_get_button_rect(
         layout_t *self,
         int x,
         int y
+);
+
+SDL_Point layout_get_timer_pos(
+        layout_t *self
+);
+
+int layout_get_timer_height(
+        layout_t *self
 );

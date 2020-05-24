@@ -6,7 +6,10 @@ struct layout {
         percent_t small_gap;
         percent_t large_gap;
         percent_t screen_pad;
-        int timer_h;
+        percent_t timer_size;
+        percent_t timer_pad;
+        SDL_Point timer_pos;
+        int timer_height;
         SDL_Rect button_canvas;
         int button_size;
 };
@@ -44,11 +47,28 @@ static SDL_Rect layout_add_padding(
         return padded;
 }
 
+static SDL_Point layout_find_timer_pos(
+        SDL_Rect *canvas,
+        percent_t timer_size,
+        percent_t timer_pad
+) {
+        SDL_Point timer_pos;
+        int timer_h = (int) (timer_size * canvas->w);
+        int timer_p = (int) (timer_pad * canvas->w);
+
+        timer_pos.x = canvas->x + canvas->w / 2;
+        timer_pos.y = canvas->y + timer_h / 2 + timer_p;
+
+        return timer_pos;
+}
+
 static SDL_Rect layout_compensate_timer(
         SDL_Rect *canvas,
-        int timer_h
+        percent_t timer_size,
+        percent_t timer_pad
 ) {
         SDL_Rect field;
+        int timer_h = (int) ((timer_size + timer_pad * 2) * canvas->w);
 
         field.x = canvas->x + timer_h / 2;
         field.y = canvas->y + timer_h;
@@ -72,17 +92,19 @@ layout_t *layout_create(
         percent_t small_gap,
         percent_t large_gap,
         percent_t screen_pad,
-        int timer_h
+        percent_t timer_size,
+        percent_t timer_pad
 ) {
         layout_t *self;
 
         self = calloc(1, sizeof(layout_t));
         if (!self)
                 return NULL;
-        self->small_gap = small_gap;
-        self->large_gap = large_gap;
+        self->small_gap  = small_gap;
+        self->large_gap  = large_gap;
         self->screen_pad = screen_pad;
-        self->timer_h = timer_h;
+        self->timer_size = timer_size;
+        self->timer_pad  = timer_pad;
         return self;
 }
 
@@ -100,7 +122,9 @@ void layout_calc(
 
         canvas = layout_calc_drawable_space(screen);
         canvas = layout_add_padding(&canvas, self->screen_pad);
-        canvas = layout_compensate_timer(&canvas, self->timer_h);
+        self->timer_height = self->timer_size * canvas.w;
+        self->timer_pos = layout_find_timer_pos(&canvas, self->timer_size, self->timer_pad);
+        canvas = layout_compensate_timer(&canvas, self->timer_size, self->timer_pad);
         self->button_canvas = canvas;
         self->button_size = layout_find_button_size(&canvas, self->small_gap, self->large_gap);
 }
@@ -130,4 +154,16 @@ SDL_Rect layout_get_button_rect(
                 + calc_gap(y, small_gap, large_gap);
         rect.w = rect.h = self->button_size;
         return rect;
+}
+
+SDL_Point layout_get_timer_pos(
+        layout_t *self
+) {
+        return self->timer_pos;
+}
+
+int layout_get_timer_height(
+        layout_t *self
+) {
+        return self->timer_height;
 }
