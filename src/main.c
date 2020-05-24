@@ -3,43 +3,11 @@
 #include "grid.h"
 #include "layout.h"
 #include "palette.h"
+#include "digit.h"
 
 #include <SDL.h>
-#include <SDL_ttf.h>
 
 #include <stdio.h>
-#include <stdlib.h>
-
-/* Simplify Digit Drawing by Caching */
-
-static SDL_Texture **create_digits(
-        context_t *ctx
-) {
-        SDL_Texture **digits;
-        int i;
-        char glyph;
-
-        digits = malloc(9 * sizeof(SDL_Texture *));
-        if (!digits) {
-                SDL_Log("Failed to allocate memory for digits\n");
-                return NULL;
-        }
-        for (i = 0; i < 9; ++i) {
-                glyph = (char) ('1' + i);
-                digits[i] = context_prepare_glyph(ctx, glyph, digit_color);
-        }
-        return digits;
-}
-
-static void destroy_digits(
-        SDL_Texture **digits
-) {
-        int i;
-
-        for (i = 0; i < 9; ++i)
-                SDL_DestroyTexture(digits[i]);
-        free(digits);
-}
 
 static void draw_timer(
         context_t *ctx
@@ -105,7 +73,7 @@ int main(
                 return -1;
         }
 
-        digits = create_digits(ctx);
+        digits = digits_create(ctx);
         if (!digits) {
                 SDL_Log("Failed to create digits\n");
                 context_destroy(ctx);
@@ -115,7 +83,7 @@ int main(
         grid = grid_create();
         if (!grid) {
                 SDL_Log("Failed to create grid\n");
-                destroy_digits(digits);
+                digits_destroy(digits);
                 context_destroy(ctx);
                 return -1;
         }
@@ -123,7 +91,7 @@ int main(
         buttons = buttons_create(grid);
         if (!buttons) {
                 SDL_Log("Failed to create buttons\n");
-                destroy_digits(digits);
+                digits_destroy(digits);
                 grid_destroy(grid);
                 context_destroy(ctx);
                 return -1;
@@ -150,7 +118,7 @@ int main(
         }
 
         buttons_destroy(buttons);
-        destroy_digits(digits);
+        digits_destroy(digits);
         grid_destroy(grid);
         context_destroy(ctx);
         return 0;

@@ -22,14 +22,20 @@ add_library(button
         button.h)
 target_link_libraries(button
         context
-        grid
-        SDL2)
+        grid)
 
 add_library(palette
         palette.c
         palette.h)
 target_link_libraries(palette
         SDL2)
+
+add_library(digit
+        digit.c
+        digit.h)
+target_link_libraries(digit
+        context
+        palette)
 
 # Application
 
@@ -42,7 +48,8 @@ set(INT_LIBS
         context
         grid
         layout
-        palette)
+        palette
+        digit)
 add_executable(${PROJECT_NAME} WIN32
         main.c)
 target_link_libraries(${PROJECT_NAME}

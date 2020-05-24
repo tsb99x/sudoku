@@ -10,7 +10,7 @@ button_t *buttons_create(
 );
 
 void buttons_destroy(
-        button_t *buttons
+        button_t *self
 );
 
 void buttons_draw(
