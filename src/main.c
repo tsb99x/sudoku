@@ -139,9 +139,13 @@ int main(
                                 on_keydown_event(&event.key, &quit);
                 }
                 SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
+                buttons_update(buttons, &mouse_pos);
+
                 context_clear_screen(ctx);
-                buttons_draw(buttons, ctx, digits, mouse_pos);
+
+                buttons_draw(buttons, ctx, digits);
                 draw_timer(ctx, layout);
+
                 context_present_screen(ctx);
         }
 

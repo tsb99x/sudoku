@@ -1,7 +1,6 @@
 #include "button.h"
 
 #include "palette.h"
-#include "layout.h"
 
 #include <SDL.h>
 
@@ -52,37 +51,54 @@ void buttons_destroy(
         free(self);
 }
 
+void buttons_update(
+        button_t *self,
+        SDL_Point *mouse_pos
+) {
+        SDL_Rect rect;
+        int i;
+
+        for (i = 0; i < ROWS * COLS; ++i) {
+                rect.x = self->x;
+                rect.y = self->y;
+                rect.w = rect.h = self->size;
+                if (SDL_PointInRect(mouse_pos, &rect))
+                        self->state = HOVERED;
+                else
+                        self->state = IDLE;
+                ++self;
+        }
+}
+
 void buttons_draw(
         button_t *self,
         context_t *ctx,
-        SDL_Texture **digits,
-        SDL_Point mouse_pos
+        SDL_Texture **digits
 ) {
         SDL_Rect rect;
         SDL_Texture *tex;
         SDL_Point pos;
-        int x, y;
+        int i;
 
-        for (y = 0; y < ROWS; ++y)
-                for (x = 0; x < COLS; ++x) {
-                        rect.x = self->x;
-                        rect.y = self->y;
-                        rect.w = self->size;
-                        rect.h = self->size;
+        for (i = 0; i < ROWS * COLS; ++i) {
+                rect.x = self->x;
+                rect.y = self->y;
+                rect.w = rect.h = self->size;
 
+                if (self->state == HOVERED)
+                        context_set_draw_color(ctx, hovered_color);
+                else
                         context_set_draw_color(ctx, clickable_color);
-                        if (SDL_PointInRect(&mouse_pos, &rect))
-                                context_set_draw_color(ctx, hovered_color);
-                        context_draw_rect(ctx, &rect);
+                context_draw_rect(ctx, &rect);
 
-                        if (self->val > 0) {
-                                tex = digits[self->val - 1];
-                                pos.x = rect.x + rect.w / 2;
-                                pos.y = rect.y + rect.h / 2;
-                                context_draw_texture(ctx, tex, &pos);
-                        }
-                        ++self;
+                if (self->val > 0) {
+                        tex = digits[self->val - 1];
+                        pos.x = rect.x + rect.w / 2;
+                        pos.y = rect.y + rect.h / 2;
+                        context_draw_texture(ctx, tex, &pos);
                 }
+                ++self;
+        }
 }
 
 void buttons_position(
