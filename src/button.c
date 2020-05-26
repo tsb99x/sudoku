@@ -9,7 +9,7 @@
 typedef enum state {
         IDLE,
         HOVERED,
-        CLICKED
+        PRESET
 } state_t;
 
 struct button {
@@ -28,7 +28,7 @@ static void assign_state(
                         buttons->x = x;
                         buttons->y = y;
                         buttons->val = grid_cell_at(grid, x, y);
-                        buttons->state = IDLE;
+                        buttons->state = (buttons->val == 0) ? IDLE : PRESET;
                         ++buttons;
                 }
 }
@@ -59,13 +59,15 @@ void buttons_update(
         int i;
 
         for (i = 0; i < ROWS * COLS; ++i) {
-                rect.x = self->x;
-                rect.y = self->y;
-                rect.w = rect.h = self->size;
-                if (SDL_PointInRect(mouse_pos, &rect))
-                        self->state = HOVERED;
-                else
-                        self->state = IDLE;
+                if (self->state != PRESET) {
+                        rect.x = self->x;
+                        rect.y = self->y;
+                        rect.w = rect.h = self->size;
+                        if (SDL_PointInRect(mouse_pos, &rect))
+                                self->state = HOVERED;
+                        else
+                                self->state = IDLE;
+                }
                 ++self;
         }
 }
@@ -85,10 +87,17 @@ void buttons_draw(
                 rect.y = self->y;
                 rect.w = rect.h = self->size;
 
-                if (self->state == HOVERED)
-                        context_set_draw_color(ctx, hovered_color);
-                else
+                switch (self->state) {
+                case IDLE:
                         context_set_draw_color(ctx, clickable_color);
+                        break;
+                case HOVERED:
+                        context_set_draw_color(ctx, hovered_color);
+                        break;
+                case PRESET:
+                        context_set_draw_color(ctx, preset_color);
+                        break;
+                }
                 context_draw_rect(ctx, &rect);
 
                 if (self->val > 0) {

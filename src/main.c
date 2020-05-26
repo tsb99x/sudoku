@@ -1,13 +1,15 @@
 #include "button.h"
 #include "context.h"
+#include "digit.h"
 #include "grid.h"
 #include "layout.h"
 #include "palette.h"
-#include "digit.h"
 
 #include <SDL.h>
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 static void draw_timer(
         context_t *ctx,
@@ -80,6 +82,8 @@ int main(
         SDL_Point mouse_pos;
         int quit, timer_height;
 
+        srand(time(NULL));
+
         ctx = context_create();
         if (!ctx) {
                 SDL_Log("Failed to create context\n");
@@ -100,6 +104,7 @@ int main(
                 context_destroy(ctx);
                 return -1;
         }
+        grid_erase(grid);
 
         buttons = buttons_create(grid);
         if (!buttons) {

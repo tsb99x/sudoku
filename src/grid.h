@@ -19,3 +19,7 @@ char grid_cell_at(
         int x,
         int y
 );
+
+void grid_erase(
+        grid_t *self
+);

@@ -38,6 +38,16 @@ void grid_destroy(
         free(self);
 }
 
+void grid_erase(
+        grid_t *self
+) {
+        int i = 0;
+
+        for (i = 0; i < ROWS * COLS; ++i)
+                if (rand() % 2 > 0)
+                        self->cells[i] = 0;
+}
+
 char grid_cell_at(
         grid_t *self,
         int x,
