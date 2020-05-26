@@ -72,6 +72,31 @@ void buttons_update(
         }
 }
 
+void buttons_click(
+        button_t *self,
+        unsigned char mouse_bt
+) {
+        int i;
+
+        for (i = 0; i < ROWS * COLS; ++i) {
+                if (self->state == HOVERED) {
+                        switch (mouse_bt) {
+                        case SDL_BUTTON_LEFT:
+                                self->val++;
+                                break;
+                        case SDL_BUTTON_RIGHT:
+                                self->val--;
+                                break;
+                        }
+                        if (self->val > 9)
+                                self->val = 0;
+                        if (self->val < 0)
+                                self->val = 9;
+                }
+                ++self;
+        }
+}
+
 void buttons_draw(
         button_t *self,
         context_t *ctx,

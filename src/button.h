@@ -19,6 +19,11 @@ void buttons_update(
         SDL_Point *mouse_pos
 );
 
+void buttons_click(
+        button_t *self,
+        unsigned char mouse_bt
+);
+
 void buttons_draw(
         button_t *self,
         context_t *ctx,

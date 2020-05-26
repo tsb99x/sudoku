@@ -142,9 +142,14 @@ int main(
                                 on_window_event(&event.window, ctx, digits, buttons, layout);
                         if (event.type == SDL_KEYDOWN)
                                 on_keydown_event(&event.key, &quit);
+                        if (event.type == SDL_MOUSEMOTION) {
+                                mouse_pos.x = event.motion.x;
+                                mouse_pos.y = event.motion.y;
+                                buttons_update(buttons, &mouse_pos);
+                        }
+                        if (event.type == SDL_MOUSEBUTTONUP)
+                                buttons_click(buttons, event.button.button);
                 }
-                SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
-                buttons_update(buttons, &mouse_pos);
 
                 context_clear_screen(ctx);
 
