@@ -6,7 +6,10 @@
 typedef struct context context_t;
 
 context_t *context_create(
-        void
+        int window_w,
+        int window_h,
+        int default_frame_rate,
+        const char *font_path
 );
 
 void context_destroy(

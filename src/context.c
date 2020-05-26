@@ -7,16 +7,17 @@
 struct context {
         SDL_Window *window;
         SDL_Renderer *renderer;
+        const char *font_path;
         TTF_Font *timer, *digit;
         int millis_per_frame;
         unsigned int last_render_time;
 };
 
-#define DEFAULT_FRAME_RATE 30
-#define FONT_PATH "C:/Windows/Fonts/Arial.ttf"
-
 context_t *context_create(
-        void
+        int window_w,
+        int window_h,
+        int default_frame_rate,
+        const char *font_path
 ) {
         SDL_DisplayMode mode;
         int refresh_rate;
@@ -45,7 +46,7 @@ context_t *context_create(
         }
 
         refresh_rate = (mode.refresh_rate == 0)
-                ? DEFAULT_FRAME_RATE
+                ? default_frame_rate
                 : mode.refresh_rate;
         self->millis_per_frame = 1000 / refresh_rate;
 
@@ -53,7 +54,8 @@ context_t *context_create(
                 "Sudoku",
                 SDL_WINDOWPOS_CENTERED,
                 SDL_WINDOWPOS_CENTERED,
-                1024, 768,
+                window_w,
+                window_h,
                 SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
         );
         if (!self->window) {
@@ -69,14 +71,15 @@ context_t *context_create(
                 return NULL;
         }
 
-        self->timer = TTF_OpenFont(FONT_PATH, 48);
+        self->font_path = font_path;
+        self->timer = TTF_OpenFont(font_path, 48);
         if (!self->timer) {
                 SDL_Log("Failed to open timer font: %s\n", TTF_GetError());
                 context_destroy(self);
                 return NULL;
         }
 
-        self->digit = TTF_OpenFont(FONT_PATH, 48 / 2.5);
+        self->digit = TTF_OpenFont(font_path, 48 / 2.5);
         if (!self->timer) {
                 SDL_Log("Failed to open digit font: %s\n", TTF_GetError());
                 context_destroy(self);
@@ -107,9 +110,9 @@ void context_resize_font(
         int size
 ) {
         TTF_CloseFont(self->timer);
-        self->timer = TTF_OpenFont(FONT_PATH, size);
+        self->timer = TTF_OpenFont(self->font_path, size);
         TTF_CloseFont(self->digit);
-        self->digit = TTF_OpenFont(FONT_PATH, size / 2.5);
+        self->digit = TTF_OpenFont(self->font_path, size / 2.5);
 }
 
 void context_set_draw_color(

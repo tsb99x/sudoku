@@ -68,7 +68,7 @@ int main(
 
         percent_t canvas_padding = .03f;
         percent_t timer_size     = .10f;
-        percent_t timer_pad      = .01f;
+        percent_t timer_pad      = .02f;
         percent_t small_gap      = .01f;
         percent_t large_gap      = .03f;
 
@@ -84,7 +84,7 @@ int main(
 
         srand(time(NULL));
 
-        ctx = context_create();
+        ctx = context_create(800, 800, 30, "C:/Windows/Fonts/Arial.ttf");
         if (!ctx) {
                 SDL_Log("Failed to create context\n");
                 return -1;

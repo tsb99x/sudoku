@@ -41,9 +41,9 @@ static SDL_Rect layout_add_padding(
         int padding_in_px = (int) (padding * canvas->w);
 
         padded.x = canvas->x + padding_in_px;
-        padded.y = canvas->y + padding_in_px;
+        padded.y = canvas->y;
         padded.w = canvas->w - padding_in_px * 2;
-        padded.h = canvas->h - padding_in_px * 2;
+        padded.h = canvas->h - padding_in_px;
         return padded;
 }
 
