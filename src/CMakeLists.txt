@@ -37,6 +37,18 @@ target_link_libraries(digit
         context
         palette)
 
+add_library(game_scene
+        game_scene.c
+        game_scene.h)
+target_link_libraries(game_scene
+        button
+        context
+        digit
+        grid
+        layout
+        SDL2
+        palette)
+
 # Application
 
 set(EXT_LIBS
@@ -44,12 +56,8 @@ set(EXT_LIBS
         SDL2main
         SDL2_ttf)
 set(INT_LIBS
-        button
         context
-        grid
-        layout
-        palette
-        digit)
+        game_scene)
 add_executable(${PROJECT_NAME} WIN32
         main.c)
 target_link_libraries(${PROJECT_NAME}

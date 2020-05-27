@@ -1,63 +1,10 @@
-#include "button.h"
 #include "context.h"
-#include "digit.h"
-#include "grid.h"
-#include "layout.h"
-#include "palette.h"
+#include "game_scene.h"
 
 #include <SDL.h>
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
-static void draw_timer(
-        context_t *ctx,
-        layout_t *layout
-) {
-        SDL_Point pos;
-        unsigned int seconds_from_start;
-        unsigned int timer_seconds;
-        unsigned int timer_minutes;
-        char timer_str[8];
-
-        seconds_from_start = SDL_GetTicks() / 1000;
-        timer_minutes = seconds_from_start / 60;
-        timer_seconds = seconds_from_start % 60;
-        sprintf(timer_str, "%02u:%02u", timer_minutes, timer_seconds);
-        pos = layout_get_timer_pos(layout);
-        context_draw_string(ctx, timer_str, timer_color, &pos);
-}
-
-static void on_window_event(
-        SDL_WindowEvent *e,
-        context_t *ctx,
-        SDL_Texture **digits,
-        button_t *buttons,
-        layout_t *layout
-) {
-        SDL_Rect screen;
-        int timer_height;
-
-        if (e->event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-                screen.x = screen.y = 0;
-                screen.w = e->data1;
-                screen.h = e->data2;
-                layout_calc(layout, &screen);
-                timer_height = layout_get_timer_height(layout);
-                context_resize_font(ctx, timer_height);
-                digits_recache(digits, ctx);
-                buttons_position(buttons, layout);
-        }
-}
-
-static void on_keydown_event(
-        SDL_KeyboardEvent *e,
-        int *quit
-) {
-        if (e->keysym.sym == SDLK_ESCAPE)
-                *quit = 1;
-}
 
 int main(
         int argc,
@@ -66,21 +13,10 @@ int main(
         (void) argc;
         (void) argv;
 
-        percent_t canvas_padding = .03f;
-        percent_t timer_size     = .10f;
-        percent_t timer_pad      = .02f;
-        percent_t small_gap      = .01f;
-        percent_t large_gap      = .03f;
-
         context_t *ctx;
-        SDL_Texture **digits;
-        grid_t *grid;
-        button_t *buttons;
-        layout_t *layout;
-        SDL_Rect screen;
+        gc_data_t gc_data;
         SDL_Event event;
-        SDL_Point mouse_pos;
-        int quit, timer_height;
+        int quit;
 
         srand(time(NULL));
 
@@ -90,79 +26,28 @@ int main(
                 return -1;
         }
 
-        digits = digits_create(ctx);
-        if (!digits) {
-                SDL_Log("Failed to create digits\n");
+        if (!game_scene_create(&gc_data, ctx)) {
+                SDL_Log("Failed to create game scene\n");
                 context_destroy(ctx);
                 return -1;
         }
-
-        grid = grid_create();
-        if (!grid) {
-                SDL_Log("Failed to create grid\n");
-                digits_destroy(digits);
-                context_destroy(ctx);
-                return -1;
-        }
-        grid_erase(grid);
-
-        buttons = buttons_create(grid);
-        if (!buttons) {
-                SDL_Log("Failed to create buttons\n");
-                digits_destroy(digits);
-                grid_destroy(grid);
-                context_destroy(ctx);
-                return -1;
-        }
-
-        layout = layout_create(small_gap, large_gap, canvas_padding,
-                                timer_size, timer_pad);
-        if (!layout) {
-                SDL_Log("Failed to create layout\n");
-                buttons_destroy(buttons);
-                digits_destroy(digits);
-                grid_destroy(grid);
-                context_destroy(ctx);
-                return -1;
-        }
-
-        screen = context_get_screen_size(ctx);
-        layout_calc(layout, &screen);
-        timer_height = layout_get_timer_height(layout);
-        context_resize_font(ctx, timer_height);
-        digits_recache(digits, ctx);
-        buttons_position(buttons, layout);
 
         quit = 0;
         while (!quit) {
                 while (SDL_PollEvent(&event)) {
                         if (event.type == SDL_QUIT)
                                 quit = 1;
-                        if (event.type == SDL_WINDOWEVENT)
-                                on_window_event(&event.window, ctx, digits, buttons, layout);
                         if (event.type == SDL_KEYDOWN)
-                                on_keydown_event(&event.key, &quit);
-                        if (event.type == SDL_MOUSEMOTION) {
-                                mouse_pos.x = event.motion.x;
-                                mouse_pos.y = event.motion.y;
-                                buttons_update(buttons, &mouse_pos);
-                        }
-                        if (event.type == SDL_MOUSEBUTTONUP)
-                                buttons_click(buttons, event.button.button);
+                                if (event.key.keysym.sym == SDLK_ESCAPE)
+                                        quit = 1;
+                        game_scene_update(&gc_data, &event);
                 }
-
                 context_clear_screen(ctx);
-
-                buttons_draw(buttons, ctx, digits);
-                draw_timer(ctx, layout);
-
+                game_scene_render(&gc_data);
                 context_present_screen(ctx);
         }
 
-        layout_destroy(layout);
-        buttons_destroy(buttons);
-        digits_destroy(digits);
-        grid_destroy(grid);
+        game_scene_destroy(&gc_data);
         context_destroy(ctx);
         return 0;
 }
