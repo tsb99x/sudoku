@@ -34,7 +34,7 @@ int game_scene_create(
                 game_scene_destroy(data);
                 return 0;
         }
-        grid_erase(data->grid);
+        grid_prepare(data->grid);
 
         data->buttons = buttons_create(data->grid);
         if (!data->buttons) {

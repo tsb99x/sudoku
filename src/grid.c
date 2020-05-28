@@ -38,14 +38,47 @@ void grid_destroy(
         free(self);
 }
 
-void grid_erase(
+static void swap_columns(
+        grid_t *self,
+        int from,
+        int to
+) {
+        int i, t;
+
+        for (i = 0; i < ROWS * COLS; i += COLS) {
+                t = self->cells[i + from];
+                self->cells[i + from] = self->cells[i + to];
+                self->cells[i + to] = t;
+        }
+}
+
+static void grid_shuffle(
         grid_t *self
 ) {
-        int i = 0;
+        int a, b;
+
+        a = rand() % 3;
+        do
+                b = rand() % 3;
+        while (b == a);
+        swap_columns(self, a, b);
+}
+
+static void grid_erase(
+        grid_t *self
+) {
+        int i;
 
         for (i = 0; i < ROWS * COLS; ++i)
                 if (rand() % 2 > 0)
                         self->cells[i] = 0;
+}
+
+void grid_prepare(
+        grid_t *self
+) {
+        grid_shuffle(self);
+        grid_erase(self);
 }
 
 char grid_cell_at(

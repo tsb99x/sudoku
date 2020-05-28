@@ -20,6 +20,6 @@ char grid_cell_at(
         int y
 );
 
-void grid_erase(
+void grid_prepare(
         grid_t *self
 );
