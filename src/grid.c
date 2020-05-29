@@ -52,8 +52,23 @@ static void swap_columns(
         }
 }
 
+static void swap_rows(
+        grid_t *self,
+        int from,
+        int to
+) {
+        int i, t;
+
+        for (i = 0; i < COLS; ++i) {
+                t = self->cells[i + from * COLS];
+                self->cells[i + from * COLS] = self->cells[i + to * COLS];
+                self->cells[i + to * COLS] = t;
+        }
+}
+
 static void grid_shuffle(
-        grid_t *self
+        grid_t *self,
+        int cols_mode
 ) {
         int a, b;
 
@@ -61,7 +76,11 @@ static void grid_shuffle(
         do
                 b = rand() % 3;
         while (b == a);
-        swap_columns(self, a, b);
+
+        if (cols_mode)
+                swap_columns(self, a, b);
+        else
+                swap_rows(self, a, b);
 }
 
 static void grid_erase(
@@ -77,7 +96,8 @@ static void grid_erase(
 void grid_prepare(
         grid_t *self
 ) {
-        grid_shuffle(self);
+        grid_shuffle(self, 1);
+        grid_shuffle(self, 0);
         grid_erase(self);
 }
 
