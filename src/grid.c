@@ -83,6 +83,27 @@ static void grid_shuffle(
                 swap_rows(self, a, b);
 }
 
+#define N 9
+
+static void grid_shuffle_values(
+        grid_t *self
+) {
+        int values[N], i, j, t;
+
+        for (i = 1; i <= N; ++i)
+                values[i - 1] = i;
+
+        for (i = N - 1; i > 1; --i) {
+                j = rand() % (i + 1);
+                t = values[i];
+                values[i] = values[j];
+                values[j] = t;
+        }
+
+        for (i = 0; i < ROWS * COLS; ++i)
+                self->cells[i] = values[self->cells[i] - 1];
+}
+
 static void grid_erase(
         grid_t *self
 ) {
@@ -98,6 +119,7 @@ void grid_prepare(
 ) {
         grid_shuffle(self, 1);
         grid_shuffle(self, 0);
+        grid_shuffle_values(self);
         grid_erase(self);
 }
 
