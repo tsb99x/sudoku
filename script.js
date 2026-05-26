@@ -1,4 +1,4 @@
-var App = (function() {
+var App = (function () {
 
 	/* MODE */
 
@@ -10,11 +10,11 @@ var App = (function() {
 
 	/* SUPPORT FUNCTIONS */
 
-	var randomInt = function(minNumber, maxNumber) {
+	var randomInt = function (minNumber, maxNumber) {
 		return Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
 	};
 
-	var timestampToTimeString = function(timestamp) {
+	var timestampToTimeString = function (timestamp) {
 		var passedSeconds = timestamp / 1000;
 		var minutes = Math.floor(passedSeconds / 60);
 		var seconds = Math.round(passedSeconds - minutes * 60);
@@ -31,327 +31,327 @@ var App = (function() {
 	/* INTERFACE */
 
 	return {
-	
-	init: function() {
-		var svg = document.body.addTag('svg', SVG_NS)
-			.setAttributes({
-				'version': '1.1',
-				'preserveAspectRatio': 'xMidYMid meet',
-				'text-rendering': 'geometricPrecision'
-			});
 
-		App.startScreen(svg);
-	},
+		init: function () {
+			var svg = document.body.addTag('svg', SVG_NS)
+				.setAttributes({
+					'version': '1.1',
+					'preserveAspectRatio': 'xMidYMid meet',
+					'text-rendering': 'geometricPrecision'
+				});
 
-	startScreen: function(svg) {
-		var buttonWidth = 25,
-			buttonHeight = 5;
+			App.startScreen(svg);
+		},
 
-		var toGameScreen = function() {
-			App.gameScreen(svg);
-		};
+		startScreen: function (svg) {
+			var buttonWidth = 25,
+				buttonHeight = 5;
 
-		svg.addTag('text', SVG_NS)
-			.setAttributes({
-				'x': 50,
-				'y': 40
-			}, {
-				units: '%'
-			})
-			.setAttributes({
-				class: 'info'
-			})
-			.setParameters({
-				textContent: 'Добро пожаловать в Судоку!'
-			});
-
-		var g = svg.addTag('g', SVG_NS)
-			.addListener('click', toGameScreen, false)
-			.setAttributes({
-				class: 'clickable'
-			});
-
-		var rect = g.addTag('rect', SVG_NS)
-			.setAttributes({
-				'x': 50 - buttonWidth / 2,
-				'y': 50 - buttonHeight / 2,
-				'width': buttonWidth,
-				'height': buttonHeight
-			}, {
-				units: '%'
-			});
-
-		var buttonLabel = g.addTag('text', SVG_NS)
-			.setAttributes({
-				'x': 50,
-				'y': 50 + 1 // FONT_SIZE of button
-			}, {
-				units: '%'
-			})
-			.setAttributes({
-				class: 'label'
-			})
-			.setParameters({
-				textContent: 'начать игру'
-			});
-	},
-
-	gameScreen: function(svg) {
-		svg.clear();
-
-		var handler;
-
-		var rootSolution = [
-			[ 1, 2, 3,  4, 5, 6,  7, 8, 9 ],
-			[ 4, 5, 6,  7, 8, 9,  1, 2, 3 ],
-			[ 7, 8, 9,  1, 2, 3,  4, 5, 6 ],
-
-			[ 2, 3, 4,  5, 6, 7,  8, 9, 1 ],
-			[ 5, 6, 7,  8, 9, 1,  2, 3, 4 ],
-			[ 8, 9, 1,  2, 3, 4,  5, 6, 7 ],
-
-			[ 3, 4, 5,  6, 7, 8,  9, 1, 2 ],
-			[ 6, 7, 8,  9, 1, 2,  3, 4, 5 ],
-			[ 9, 1, 2,  3, 4, 5,  6, 7, 8 ]
-		];
-
-		var playGrid = rootSolution.map(function(row) {
-			return row.map(function(cell) {
-				return {
-					value: '',
-					solution: cell,
-					locked: false
-				};
-			});
-		});
-
-		var checkSolution = function() {
-			var isRowSolved = function(row) {
-				var isCellSolved = function(cell) {
-					return cell.value === cell.solution;
-				};
-
-				return row.every(isCellSolved);
+			var toGameScreen = function () {
+				App.gameScreen(svg);
 			};
 
-			if (playGrid.every(isRowSolved)) {
-				clearInterval(handler);
-				App.winScreen(svg, Date.now() - startTime);
-			}
-		};
+			svg.addTag('text', SVG_NS)
+				.setAttributes({
+					'x': 50,
+					'y': 40
+				}, {
+					units: '%'
+				})
+				.setAttributes({
+					class: 'info'
+				})
+				.setParameters({
+					textContent: 'Добро пожаловать в Судоку!'
+				});
 
-		var i, posX, posY;
-		for (i = 0; i < 80; i++) {
-			posX = randomInt(0, 8);
-			posY = randomInt(0, 8);
+			var g = svg.addTag('g', SVG_NS)
+				.addListener('click', toGameScreen, false)
+				.setAttributes({
+					class: 'clickable'
+				});
 
-			playGrid[posY][posX].locked = true;
-			playGrid[posY][posX].value = playGrid[posY][posX].solution;
-		};
+			var rect = g.addTag('rect', SVG_NS)
+				.setAttributes({
+					'x': 50 - buttonWidth / 2,
+					'y': 50 - buttonHeight / 2,
+					'width': buttonWidth,
+					'height': buttonHeight
+				}, {
+					units: '%'
+				});
 
-		var operation, subgrid, row1, row2, col1, col2;
-		for (i = 0; i < 9; i++) {
-			operation = randomInt(1, 2);
+			var buttonLabel = g.addTag('text', SVG_NS)
+				.setAttributes({
+					'x': 50,
+					'y': 50 + 1 // FONT_SIZE of button
+				}, {
+					units: '%'
+				})
+				.setAttributes({
+					class: 'label'
+				})
+				.setParameters({
+					textContent: 'начать игру'
+				});
+		},
 
-			if (operation === 1) { // row swap
-				subgrid = randomInt(0, 2);
-				row1 = randomInt(0, 2) + subgrid * 3;
-				row2 = randomInt(0, 2) + subgrid * 3;
+		gameScreen: function (svg) {
+			svg.clear();
 
-				var temp = playGrid[row1];
-				playGrid[row1] = playGrid[row2];
-				playGrid[row2] = temp;
-			}
-			if (operation === 2) { // col swap
-				subgrid = randomInt(0, 2);
-				col1 = randomInt(0, 2) + subgrid * 3;
-				col2 = randomInt(0, 2) + subgrid * 3;
+			var handler;
 
-				for (var j = 0; j < 9; j++) {
-					var temp = playGrid[j][col1];
-					playGrid[j][col1] = playGrid[j][col2];
-					playGrid[j][col2] = temp;
-				}
-			}
-		};
+			var rootSolution = [
+				[1, 2, 3, 4, 5, 6, 7, 8, 9],
+				[4, 5, 6, 7, 8, 9, 1, 2, 3],
+				[7, 8, 9, 1, 2, 3, 4, 5, 6],
 
-		var CELL_SIZE = 8,
-			SPACE_SIZE = 1,
-			INTERSPACE_SIZE = 2,
-			FONT_SIZE = 2.5,
-			ORIGIN_POINT = { x: 8, y: 12 };
+				[2, 3, 4, 5, 6, 7, 8, 9, 1],
+				[5, 6, 7, 8, 9, 1, 2, 3, 4],
+				[8, 9, 1, 2, 3, 4, 5, 6, 7],
 
-		var drawRow = function(row, rowIndex) {
-			var drawCell = function(cell, cellIndex) {
-				var offsetX = 0;
-				var offsetY = 0;
+				[3, 4, 5, 6, 7, 8, 9, 1, 2],
+				[6, 7, 8, 9, 1, 2, 3, 4, 5],
+				[9, 1, 2, 3, 4, 5, 6, 7, 8]
+			];
 
-				if (cellIndex > 2)
-					offsetX++;
-				if (cellIndex > 5)
-					offsetX++;
+			var playGrid = rootSolution.map(function (row) {
+				return row.map(function (cell) {
+					return {
+						value: '',
+						solution: cell,
+						locked: false
+					};
+				});
+			});
 
-				if (rowIndex > 2)
-					offsetY++;
-				if (rowIndex > 5)
-					offsetY++;
+			var checkSolution = function () {
+				var isRowSolved = function (row) {
+					var isCellSolved = function (cell) {
+						return cell.value === cell.solution;
+					};
 
-				var cellStartX = ORIGIN_POINT.x + CELL_SIZE * cellIndex + SPACE_SIZE * cellIndex + offsetX * INTERSPACE_SIZE,
-					cellStartY = ORIGIN_POINT.y + CELL_SIZE * rowIndex + SPACE_SIZE * rowIndex + offsetY * INTERSPACE_SIZE;
-
-				var g = svg.addTag('g', SVG_NS)
-					.setAttributes({
-						'class': cell.locked ? 'locked' : 'clickable'
-					});
-
-				var rect = g.addTag('rect', SVG_NS)
-					.setAttributes({
-						'x': cellStartX,
-						'y': cellStartY,
-						'width': CELL_SIZE,
-						'height': CELL_SIZE
-					}, {
-						units: '%'
-					});
-
-				var label = g.addTag('text', SVG_NS)
-					.setAttributes({
-						'x': cellStartX + CELL_SIZE / 2,
-						'y': cellStartY + CELL_SIZE / 2 + FONT_SIZE / 2,
-					}, {
-						units: '%'
-					})
-					.setAttributes({
-						'class': 'label'
-					})
-					.setParameters({
-						textContent: cell.value,
-					});
-
-				var addValue = function() {
-					if (cell.value == 9)
-						cell.value = '';
-					else
-					if (cell.value < 9)
-						cell.value++;
-					else
-					if (cell.value == '')
-						cell.value = 1
-
-					checkSolution();
-
-					label.textContent = cell.value;
+					return row.every(isCellSolved);
 				};
 
-				var subValue = function() {
-					if (cell.value == 1)
-						cell.value = '';
-					else
-					if (cell.value > 1)
-						cell.value--;
-					else
-					if (cell.value == '')
-						cell.value = 9;
-
-					checkSolution();
-
-					label.textContent = cell.value;
-				};
-
-				if (!cell.locked) {
-					g.addListener('click', addValue, false);
-					g.addListener('contextmenu', subValue, false);
+				if (playGrid.every(isRowSolved)) {
+					clearInterval(handler);
+					App.winScreen(svg, Date.now() - startTime);
 				}
 			};
 
-			row.forEach(drawCell);
-		};
+			var i, posX, posY;
+			for (i = 0; i < 80; i++) {
+				posX = randomInt(0, 8);
+				posY = randomInt(0, 8);
 
-		playGrid.forEach(drawRow);
+				playGrid[posY][posX].locked = true;
+				playGrid[posY][posX].value = playGrid[posY][posX].solution;
+			};
 
-		var startTime = Date.now();
+			var operation, subgrid, row1, row2, col1, col2;
+			for (i = 0; i < 9; i++) {
+				operation = randomInt(1, 2);
 
-		var time = svg.addTag('text', SVG_NS)
-			.setAttributes({
-				'x': 50,
-				'y': 7 + 2.5 // FONT_SIZE of .timer
-			}, {
-				units: '%'
-			})
-			.setAttributes({
-				'class': 'timer'
-			});
+				if (operation === 1) { // row swap
+					subgrid = randomInt(0, 2);
+					row1 = randomInt(0, 2) + subgrid * 3;
+					row2 = randomInt(0, 2) + subgrid * 3;
 
-		var updateTime = function() {
-			time.textContent = timestampToTimeString(Date.now() - startTime);
-		};
-		updateTime();
+					var temp = playGrid[row1];
+					playGrid[row1] = playGrid[row2];
+					playGrid[row2] = temp;
+				}
+				if (operation === 2) { // col swap
+					subgrid = randomInt(0, 2);
+					col1 = randomInt(0, 2) + subgrid * 3;
+					col2 = randomInt(0, 2) + subgrid * 3;
 
-		handler = setInterval(updateTime, 1000);
-	},
+					for (var j = 0; j < 9; j++) {
+						var temp = playGrid[j][col1];
+						playGrid[j][col1] = playGrid[j][col2];
+						playGrid[j][col2] = temp;
+					}
+				}
+			};
 
-	winScreen: function(svg, timestamp) {
-		var toGameScreen = function() {
-			App.gameScreen(svg);
-		};
+			var CELL_SIZE = 8,
+				SPACE_SIZE = 1,
+				INTERSPACE_SIZE = 2,
+				FONT_SIZE = 2.5,
+				ORIGIN_POINT = { x: 8, y: 12 };
 
-		svg.clear();
+			var drawRow = function (row, rowIndex) {
+				var drawCell = function (cell, cellIndex) {
+					var offsetX = 0;
+					var offsetY = 0;
 
-		var time = timestampToTimeString(timestamp);
+					if (cellIndex > 2)
+						offsetX++;
+					if (cellIndex > 5)
+						offsetX++;
 
-		var buttonWidth = 30,
-			buttonHeight = 5;
+					if (rowIndex > 2)
+						offsetY++;
+					if (rowIndex > 5)
+						offsetY++;
 
-		var label = svg.addTag('text', SVG_NS)
-			.setAttributes({
-				'x': 50,
-				'y': 40 + 1 // FONT_SIZE of button
-			}, {
-				units: '%'
-			})
-			.setAttributes({
-				class: 'info'
-			})
-			.setParameters({
-				textContent: 'Поздравляем! Вы решили судоку за ' + time
-			});
+					var cellStartX = ORIGIN_POINT.x + CELL_SIZE * cellIndex + SPACE_SIZE * cellIndex + offsetX * INTERSPACE_SIZE,
+						cellStartY = ORIGIN_POINT.y + CELL_SIZE * rowIndex + SPACE_SIZE * rowIndex + offsetY * INTERSPACE_SIZE;
 
-		var g = svg.addTag('g', SVG_NS)
-			.addListener('click', toGameScreen, false)
-			.setAttributes({
-				class: 'clickable'
-			});
+					var g = svg.addTag('g', SVG_NS)
+						.setAttributes({
+							'class': cell.locked ? 'locked' : 'clickable'
+						});
 
-		var rect = g.addTag('rect', SVG_NS)
-			.setAttributes({
-				'x': 50 - buttonWidth / 2,
-				'y': 50 - buttonHeight / 2,
-				'width': buttonWidth,
-				'height': buttonHeight
-			}, {
-				units: '%'
-			});
+					var rect = g.addTag('rect', SVG_NS)
+						.setAttributes({
+							'x': cellStartX,
+							'y': cellStartY,
+							'width': CELL_SIZE,
+							'height': CELL_SIZE
+						}, {
+							units: '%'
+						});
 
-		var buttonLabel = g.addTag('text', SVG_NS)
-			.setAttributes({
-				'x': 50,
-				'y': 50  + 1 // FONT_SIZE of label
-			}, {
-				units: '%'
-			})
-			.setAttributes({
-				class: 'label'
-			})
-			.setParameters({
-				textContent: 'начать сначала'
-			});
-	}
+					var label = g.addTag('text', SVG_NS)
+						.setAttributes({
+							'x': cellStartX + CELL_SIZE / 2,
+							'y': cellStartY + CELL_SIZE / 2 + FONT_SIZE / 2,
+						}, {
+							units: '%'
+						})
+						.setAttributes({
+							'class': 'label'
+						})
+						.setParameters({
+							textContent: cell.value,
+						});
+
+					var addValue = function () {
+						if (cell.value == 9)
+							cell.value = '';
+						else
+							if (cell.value < 9)
+								cell.value++;
+							else
+								if (cell.value == '')
+									cell.value = 1
+
+						checkSolution();
+
+						label.textContent = cell.value;
+					};
+
+					var subValue = function () {
+						if (cell.value == 1)
+							cell.value = '';
+						else
+							if (cell.value > 1)
+								cell.value--;
+							else
+								if (cell.value == '')
+									cell.value = 9;
+
+						checkSolution();
+
+						label.textContent = cell.value;
+					};
+
+					if (!cell.locked) {
+						g.addListener('click', addValue, false);
+						g.addListener('contextmenu', subValue, false);
+					}
+				};
+
+				row.forEach(drawCell);
+			};
+
+			playGrid.forEach(drawRow);
+
+			var startTime = Date.now();
+
+			var time = svg.addTag('text', SVG_NS)
+				.setAttributes({
+					'x': 50,
+					'y': 7 + 2.5 // FONT_SIZE of .timer
+				}, {
+					units: '%'
+				})
+				.setAttributes({
+					'class': 'timer'
+				});
+
+			var updateTime = function () {
+				time.textContent = timestampToTimeString(Date.now() - startTime);
+			};
+			updateTime();
+
+			handler = setInterval(updateTime, 1000);
+		},
+
+		winScreen: function (svg, timestamp) {
+			var toGameScreen = function () {
+				App.gameScreen(svg);
+			};
+
+			svg.clear();
+
+			var time = timestampToTimeString(timestamp);
+
+			var buttonWidth = 30,
+				buttonHeight = 5;
+
+			var label = svg.addTag('text', SVG_NS)
+				.setAttributes({
+					'x': 50,
+					'y': 40 + 1 // FONT_SIZE of button
+				}, {
+					units: '%'
+				})
+				.setAttributes({
+					class: 'info'
+				})
+				.setParameters({
+					textContent: 'Поздравляем! Вы решили судоку за ' + time
+				});
+
+			var g = svg.addTag('g', SVG_NS)
+				.addListener('click', toGameScreen, false)
+				.setAttributes({
+					class: 'clickable'
+				});
+
+			var rect = g.addTag('rect', SVG_NS)
+				.setAttributes({
+					'x': 50 - buttonWidth / 2,
+					'y': 50 - buttonHeight / 2,
+					'width': buttonWidth,
+					'height': buttonHeight
+				}, {
+					units: '%'
+				});
+
+			var buttonLabel = g.addTag('text', SVG_NS)
+				.setAttributes({
+					'x': 50,
+					'y': 50 + 1 // FONT_SIZE of label
+				}, {
+					units: '%'
+				})
+				.setAttributes({
+					class: 'label'
+				})
+				.setParameters({
+					textContent: 'начать сначала'
+				});
+		}
 
 	};
 
 })();
 
-Element.prototype.setAttributes = function(attributesObject, modifiersObject) {
+Element.prototype.setAttributes = function (attributesObject, modifiersObject) {
 	var namespace = null,
 		units = null;
 
@@ -360,7 +360,7 @@ Element.prototype.setAttributes = function(attributesObject, modifiersObject) {
 		units = modifiersObject.units || null;
 	}
 
-	var applyAttribute = function(attributeKey) {
+	var applyAttribute = function (attributeKey) {
 		this.setAttributeNS(
 			namespace,
 			attributeKey,
@@ -374,8 +374,8 @@ Element.prototype.setAttributes = function(attributesObject, modifiersObject) {
 	return this;
 };
 
-Element.prototype.setParameters = function(parametersObject) {
-	var applyParameter = function(parameterKey) {
+Element.prototype.setParameters = function (parametersObject) {
+	var applyParameter = function (parameterKey) {
 		this[parameterKey] = parametersObject[parameterKey];
 	};
 
