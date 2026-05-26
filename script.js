@@ -17,17 +17,6 @@ Element.prototype.addListener = function (eventNameString, callbackFunction, bub
 	return this;
 };
 
-Element.prototype.setAttributes = function (attributesObject) {
-	var applyAttribute = function (attributeKey) {
-		this.setAttribute(attributeKey, attributesObject[attributeKey]);
-	};
-
-	Object.getOwnPropertyNames(attributesObject)
-		.forEach(applyAttribute, this);
-
-	return this;
-};
-
 Element.prototype.setText = function (string) {
 	this.textContent = string;
 
