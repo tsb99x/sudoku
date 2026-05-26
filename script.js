@@ -11,7 +11,7 @@ Element.prototype.addTag = function (tagNameString, namespaceString) {
 	);
 };
 
-Element.prototype.addListener = function (eventNameString, callbackFunction, bubbleBoolean) { // addListener ?
+Element.prototype.addListener = function (eventNameString, callbackFunction, bubbleBoolean) {
 	this.addEventListener(eventNameString, callbackFunction, bubbleBoolean);
 
 	return this;
@@ -34,27 +34,11 @@ Element.prototype.setText = function (string) {
 	return this;
 };
 
-/* ==================== */
-/* NAMESPACE DEFINITION */
-/* ==================== */
-
 var Utility = Utility || {};
-
-/* ================= */
-/* MODULE DEFINITION */
-/* ================= */
 
 Utility.Misc = (function () {
 
-	/* ============== */
-	/* INTERPRET MODE */
-	/* ============== */
-
 	'use strict';
-
-	/* ================ */
-	/* MODULE INTERFACE */
-	/* ================ */
 
 	return {
 
@@ -64,25 +48,15 @@ Utility.Misc = (function () {
 			return false;
 		},
 
-		toArray: function (arrayLike) {
-			return Array.prototype.slice.call(arrayLike);
-		}
-
 	};
 
 })();
 
 var App = (function () {
 
-	/* MODE */
-
 	'use strict';
 
-	/* CONSTANTS */
-
 	var SVG_NS = 'http://www.w3.org/2000/svg';
-
-	/* SUPPORT FUNCTIONS */
 
 	var randomInt = function (minNumber, maxNumber) {
 		return Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
@@ -101,8 +75,6 @@ var App = (function () {
 
 		return minutes + ':' + seconds;
 	};
-
-	/* INTERFACE */
 
 	return {
 
@@ -145,7 +117,7 @@ var App = (function () {
 					class: 'clickable'
 				});
 
-			var rect = g.addTag('rect', SVG_NS)
+			g.addTag('rect', SVG_NS)
 				.setAttributes({
 					'x': 50 - buttonWidth / 2,
 					'y': 50 - buttonHeight / 2,
@@ -155,7 +127,7 @@ var App = (function () {
 					units: '%'
 				});
 
-			var buttonLabel = g.addTag('text', SVG_NS)
+			g.addTag('text', SVG_NS)
 				.setAttributes({
 					'x': 50,
 					'y': 50 + 1 // FONT_SIZE of button
@@ -278,7 +250,7 @@ var App = (function () {
 							'class': cell.locked ? 'locked' : 'clickable'
 						});
 
-					var rect = g.addTag('rect', SVG_NS)
+					g.addTag('rect', SVG_NS)
 						.setAttributes({
 							'x': cellStartX,
 							'y': cellStartY,
@@ -376,7 +348,7 @@ var App = (function () {
 			var buttonWidth = 30,
 				buttonHeight = 5;
 
-			var label = svg.addTag('text', SVG_NS)
+			svg.addTag('text', SVG_NS)
 				.setAttributes({
 					'x': 50,
 					'y': 40 + 1 // FONT_SIZE of button
@@ -396,7 +368,7 @@ var App = (function () {
 					class: 'clickable'
 				});
 
-			var rect = g.addTag('rect', SVG_NS)
+			g.addTag('rect', SVG_NS)
 				.setAttributes({
 					'x': 50 - buttonWidth / 2,
 					'y': 50 - buttonHeight / 2,
@@ -406,7 +378,7 @@ var App = (function () {
 					units: '%'
 				});
 
-			var buttonLabel = g.addTag('text', SVG_NS)
+			g.addTag('text', SVG_NS)
 				.setAttributes({
 					'x': 50,
 					'y': 50 + 1 // FONT_SIZE of label
