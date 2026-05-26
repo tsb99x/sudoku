@@ -34,24 +34,6 @@ Element.prototype.setText = function (string) {
 	return this;
 };
 
-var Utility = Utility || {};
-
-Utility.Misc = (function () {
-
-	'use strict';
-
-	return {
-
-		preventDefault: function (event) {
-			event.preventDefault();
-
-			return false;
-		},
-
-	};
-
-})();
-
 var App = (function () {
 
 	'use strict';
@@ -431,9 +413,14 @@ Element.prototype.setParameters = function (parametersObject) {
 	return this;
 };
 
-document.ontouchmove = Utility.Misc.preventDefault; // no scroll, bounce and zoom for iOS
-document.oncontextmenu = Utility.Misc.preventDefault; // no context menu on RMB
-document.onselectstart = Utility.Misc.preventDefault; // no text selection (for labels)
-document.onmousedown = Utility.Misc.preventDefault; // no events with mouse down (working as text selection in firefox)
+var preventDefault = function (event) {
+	event.preventDefault();
+	return false;
+}
+
+document.ontouchmove = preventDefault; // no scroll, bounce and zoom for iOS
+document.oncontextmenu = preventDefault; // no context menu on RMB
+document.onselectstart = preventDefault; // no text selection (for labels)
+document.onmousedown = preventDefault; // no events with mouse down (working as text selection in firefox)
 
 window.onload = App.init;
